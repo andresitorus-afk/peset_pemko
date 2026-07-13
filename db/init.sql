@@ -1,1 +1,1 @@
-CREATE DATABASE IF NOT EXISTS laravel_db;
+CREATE DATABASE IF NOT EXISTS pemanfaatan_aset;
