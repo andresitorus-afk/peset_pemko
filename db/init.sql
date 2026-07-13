@@ -1,1 +1,1 @@
-CREATE DATABASE IF NOT EXISTS pemanfaatan_aset;
+-- ponytail: POSTGRES_DB already creates the database, init.sql left empty
