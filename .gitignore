@@ -1,4 +1,33 @@
-node_modules
-vendor
-.env
+# Laravel
+/vendor
+/backend/vendor
+/backend/.env
+/backend/storage/*.key
+/backend/node_modules
+/backend/public/build
+/backend/public/hot
+/backend/storage/*.json
+
+# Frontend
+/frontend/node_modules
+/frontend/.nuxt
+/frontend/.output
+/frontend/dist
+
+# Docker
 pgdata
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.backup
+.env.production

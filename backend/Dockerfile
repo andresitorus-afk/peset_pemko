@@ -1,10 +1,22 @@
 FROM php:8.2-fpm
+
 RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    && docker-php-ext-install pdo_pgsql
+    git curl zip unzip libpng-dev libonig-dev libxml2-dev \
+    libpq-dev libicu-dev \
+    && docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath gd intl opcache \
+    && pecl install redis && docker-php-ext-enable redis \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
 WORKDIR /var/www/html
+
 COPY . .
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-RUN composer install
+
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
 EXPOSE 9000
+
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
