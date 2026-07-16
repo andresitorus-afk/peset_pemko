@@ -3,21 +3,23 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuid;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class PihakKetiga extends Model
 {
-    use HasUuid;
-
+    public $incrementing = false;
+    protected $keyType = 'string';
     protected $table = 'pihak_ketiga';
 
-    protected $fillable = [
-        'nama', 'jenis', 'npwp', 'alamat', 'telepon', 'email', 'penanggung_jawab',
-    ];
-
-    public function pemanfaatan(): HasMany
+    protected static function boot(): void
     {
-        return $this->hasMany(Pemanfaatan::class);
+        parent::boot();
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = Str::uuid()->toString();
+            }
+        });
     }
+
+    protected $fillable = ['nama', 'jenis', 'npwp', 'alamat', 'telepon', 'email', 'penanggung_jawab'];
 }

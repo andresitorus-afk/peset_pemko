@@ -7,11 +7,11 @@ use App\Http\Resources\OpdResource;
 use App\Models\Opd;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\AnonymousResourceCollection;
+
 
 class OpdController extends Controller
 {
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request)
     {
         $opd = Opd::query()
             ->when($request->search, fn ($q, $s) => $q->where('nama_opd', 'ilike', "%{$s}%"))

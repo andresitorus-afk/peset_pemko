@@ -23,6 +23,9 @@ pgdata
 *.swp
 *.swo
 
+# Superpowers
+.superpowers/
+
 # OS
 .DS_Store
 Thumbs.db

@@ -7,11 +7,11 @@ use App\Http\Resources\PihakKetigaResource;
 use App\Models\PihakKetiga;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\AnonymousResourceCollection;
+
 
 class PihakKetigaController extends Controller
 {
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request)
     {
         $pihak = PihakKetiga::query()
             ->when($request->search, fn ($q, $s) => $q->where('nama', 'ilike', "%{$s}%"))

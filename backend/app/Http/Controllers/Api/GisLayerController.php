@@ -7,11 +7,11 @@ use App\Http\Resources\GisLayerResource;
 use App\Models\GisLayer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\AnonymousResourceCollection;
+
 
 class GisLayerController extends Controller
 {
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request)
     {
         $layer = GisLayer::query()
             ->when($request->search, fn ($q, $s) => $q->where('nama_layer', 'ilike', "%{$s}%"))

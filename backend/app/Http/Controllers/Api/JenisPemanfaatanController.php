@@ -7,11 +7,11 @@ use App\Http\Resources\JenisPemanfaatanResource;
 use App\Models\JenisPemanfaatan;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\AnonymousResourceCollection;
+
 
 class JenisPemanfaatanController extends Controller
 {
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request)
     {
         $jenis = JenisPemanfaatan::query()
             ->when($request->search, fn ($q, $s) => $q->where('nama', 'ilike', "%{$s}%"))

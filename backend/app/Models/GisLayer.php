@@ -3,20 +3,27 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuid;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class GisLayer extends Model
 {
-    use HasUuid;
-
+    public $incrementing = false;
+    protected $keyType = 'string';
     protected $table = 'gis_layer';
+
+    protected static function boot(): void
+    {
+        parent::boot();
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = Str::uuid()->toString();
+            }
+        });
+    }
 
     protected $fillable = ['nama_layer', 'warna', 'icon_marker', 'is_active'];
 
-    protected $casts = ['is_active' => 'boolean'];
-
-    public function gisAset(): HasMany
+    public function gisAset()
     {
         return $this->hasMany(GisAset::class, 'layer_id');
     }

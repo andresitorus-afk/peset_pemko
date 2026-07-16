@@ -14,9 +14,8 @@ class DashboardController extends Controller
     {
         $totalAset = Aset::count();
 
-        $asetPerKategori = Aset::select('kategori_id', DB::raw('count(*) as total'))
+        $asetPerKategori = Aset::selectRaw('kategori_aset.nama_kategori, count(*) as total')
             ->join('kategori_aset', 'aset.kategori_id', '=', 'kategori_aset.id')
-            ->selectRaw('kategori_aset.nama_kategori, count(*) as total')
             ->groupBy('kategori_aset.nama_kategori')
             ->get();
 

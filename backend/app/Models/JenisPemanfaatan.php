@@ -3,19 +3,23 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuid;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class JenisPemanfaatan extends Model
 {
-    use HasUuid;
-
+    public $incrementing = false;
+    protected $keyType = 'string';
     protected $table = 'jenis_pemanfaatan';
 
-    protected $fillable = ['kode', 'nama', 'dasar_hukum', 'ketentuan'];
-
-    public function pemanfaatan(): HasMany
+    protected static function boot(): void
     {
-        return $this->hasMany(Pemanfaatan::class, 'jenis_id');
+        parent::boot();
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = Str::uuid()->toString();
+            }
+        });
     }
+
+    protected $fillable = ['kode', 'nama', 'dasar_hukum', 'ketentuan'];
 }

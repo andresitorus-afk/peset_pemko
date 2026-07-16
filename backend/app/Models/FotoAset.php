@@ -3,14 +3,24 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class FotoAset extends Model
 {
-    use HasUuid;
-
+    public $incrementing = false;
+    protected $keyType = 'string';
     protected $table = 'foto_aset';
+
+    protected static function boot(): void
+    {
+        parent::boot();
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = Str::uuid()->toString();
+            }
+        });
+    }
 
     protected $fillable = ['aset_id', 'file_path', 'caption', 'tipe', 'tanggal_foto'];
 

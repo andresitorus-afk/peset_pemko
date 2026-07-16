@@ -7,11 +7,11 @@ use App\Http\Resources\KategoriAsetResource;
 use App\Models\KategoriAset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\AnonymousResourceCollection;
+
 
 class KategoriAsetController extends Controller
 {
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request)
     {
         $kategori = KategoriAset::query()
             ->when($request->search, fn ($q, $s) => $q->where('nama_kategori', 'ilike', "%{$s}%"))

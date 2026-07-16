@@ -7,11 +7,11 @@ use App\Http\Resources\AsetResource;
 use App\Models\Aset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\AnonymousResourceCollection;
+
 
 class AsetController extends Controller
 {
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request)
     {
         $aset = Aset::query()
             ->with(['opd', 'kategori'])
@@ -91,21 +91,21 @@ class AsetController extends Controller
         return response()->json(['message' => 'Berhasil dihapus.']);
     }
 
-    public function pemanfaatan(Aset $aset): AnonymousResourceCollection
+    public function pemanfaatan(Aset $aset)
     {
         return \App\Http\Resources\PemanfaatanResource::collection(
             $aset->pemanfaatan()->with(['jenis', 'pihakKetiga'])->orderByDesc('created_at')->paginate(15)
         );
     }
 
-    public function foto(Aset $aset): AnonymousResourceCollection
+    public function foto(Aset $aset)
     {
         return \App\Http\Resources\FotoAsetResource::collection(
             $aset->foto()->orderByDesc('created_at')->paginate(15)
         );
     }
 
-    public function riwayat(Aset $aset): AnonymousResourceCollection
+    public function riwayat(Aset $aset)
     {
         return \App\Http\Resources\RiwayatAsetResource::collection(
             $aset->riwayat()->with('user')->orderByDesc('created_at')->paginate(15)

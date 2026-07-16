@@ -8,11 +8,11 @@ use App\Models\Aset;
 use App\Models\Pemanfaatan;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\AnonymousResourceCollection;
+
 
 class PemanfaatanController extends Controller
 {
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request)
     {
         $query = Pemanfaatan::query()
             ->with(['aset', 'jenis', 'pihakKetiga']);
@@ -102,7 +102,7 @@ class PemanfaatanController extends Controller
         return response()->json(['message' => 'Berhasil dihapus.']);
     }
 
-    public function dokumen(Pemanfaatan $pemanfaatan): AnonymousResourceCollection
+    public function dokumen(Pemanfaatan $pemanfaatan)
     {
         return \App\Http\Resources\DokumenPemanfaatanResource::collection(
             $pemanfaatan->dokumen()->orderByDesc('created_at')->paginate(15)

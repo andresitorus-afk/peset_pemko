@@ -7,11 +7,11 @@ use App\Http\Resources\RiwayatAsetResource;
 use App\Models\RiwayatAset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\AnonymousResourceCollection;
+
 
 class RiwayatAsetController extends Controller
 {
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request)
     {
         $query = RiwayatAset::with(['aset', 'user']);
 
