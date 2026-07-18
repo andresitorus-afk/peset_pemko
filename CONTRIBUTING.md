@@ -71,3 +71,51 @@ docs: tambah CONTRIBUTING.md
 3. Isi judul dengan format yang sama seperti commit
 4. Deskripsikan perubahan secara singkat
 5. Tunggu review atau langsung merge kalau sudah oke
+
+## Setelah Git Clone — Yang Harus Dilakukan
+
+```bash
+# 1. Copy env
+cp .env.example .env
+
+# 2. Jalankan Docker
+docker compose up -d
+
+# 3. Generate app key
+docker compose exec backend php artisan key:generate
+
+# 4. Install dependency PHP (jika belum)
+docker compose exec backend composer install
+
+# 5. Install dependency frontend
+cd frontend && npm install && cd ..
+
+# 6. Jalankan migration + seed (OPD, Kategori KIB dari XLSX, demo data)
+docker compose exec backend php artisan migrate:fresh --seed --force
+
+# 7. Pastikan file KIB XLSX ada di backend/ (untuk seeder kategori)
+#    - backend/KIBA.xlsx
+#    - backend/KIBC.xlsx
+#    (file ini sudah di-commit di repo)
+
+# 8. Jalankan frontend dev
+cd frontend && npm run dev
+```
+
+### Akun Demo
+
+| Email | Password | Role |
+|-------|----------|------|
+| admin@pemkomedan.go.id | password | Admin |
+| petugas@pemkomedan.go.id | password | Petugas Aset |
+
+### URL
+
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000/api
+
+### Checklist Setelah Setup
+
+- [ ] `docker compose ps` — semua container running
+- [ ] `docker compose exec backend php artisan tinker --execute="echo \App\Models\Aset::count();"` — harusnya > 0
+- [ ] Buka http://localhost:8000/api/aset — harus return JSON (minta auth dulu)

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AsetResource;
+use App\Imports\AsetImport;
 use App\Models\Aset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class AsetController extends Controller
@@ -110,5 +112,86 @@ class AsetController extends Controller
         return \App\Http\Resources\RiwayatAsetResource::collection(
             $aset->riwayat()->with('user')->orderByDesc('created_at')->paginate(15)
         );
+    }
+
+    public function import(Request $request): JsonResponse
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        $import = new AsetImport;
+        Excel::import($import, $request->file('file'));
+
+        return response()->json([
+            'message' => 'Import selesai',
+            'success' => $import->results['success'],
+            'failed'  => $import->results['failed'],
+            'errors'  => $import->results['errors'],
+        ]);
+    }
+
+    public function template()
+    {
+        $opdList = \App\Models\Opd::pluck('nama_opd', 'kode_opd');
+        $kategoriLeaf = \App\Models\KategoriAset::where('is_leaf', true)->orderBy('kode_kategori')->get();
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Header
+        $headers = ['kode_barang', 'register', 'nama_barang', 'opd', 'kode_kategori', 'tahun_perolehan', 'nilai_perolehan', 'nilai_buku', 'luas', 'kondisi', 'status', 'alamat', 'keterangan'];
+        foreach ($headers as $col => $header) {
+            $cell = $sheet->getCellByColumnAndRow($col + 1, 1);
+            $cell->setValue($header);
+            $cell->getStyle()->getFont()->setBold(true);
+        }
+
+        // Contoh baris
+        $sampleKode = $kategoriLeaf->first()?->kode_kategori ?? '1.3.1.01.01.01.001';
+        $sample = ['TAN-2024-001', '.01001.001', 'Tanah Kantor Dinas', 'Dinas Pendidikan', $sampleKode, 2024, 15000000000, 15000000000, 5000, 'Baik', 'Aktif', 'Jl. Contoh No.1', 'Contoh data'];
+        foreach ($sample as $col => $val) {
+            $sheet->getCellByColumnAndRow($col + 1, 2)->setValue($val);
+        }
+
+        // List OPD di sheet 2
+        $opdSheet = $spreadsheet->createSheet();
+        $opdSheet->setTitle('Data OPD');
+        $opdSheet->getCell('A1')->setValue('Kode OPD');
+        $opdSheet->getCell('B1')->setValue('Nama OPD');
+        $opdSheet->getCell('A1')->getStyle()->getFont()->setBold(true);
+        $opdSheet->getCell('B1')->getStyle()->getFont()->setBold(true);
+        $row = 2;
+        foreach ($opdList as $kode => $nama) {
+            $opdSheet->getCell("A{$row}")->setValue($kode);
+            $opdSheet->getCell("B{$row}")->setValue($nama);
+            $row++;
+        }
+
+        // List Kategori (leaf nodes) di sheet 3
+        $katSheet = $spreadsheet->createSheet();
+        $katSheet->setTitle('Data Kategori');
+        $katSheet->getCell('A1')->setValue('Kode Kategori');
+        $katSheet->getCell('B1')->setValue('Nama Kategori');
+        $katSheet->getCell('C1')->setValue('Kode KIB');
+        $katSheet->getCell('A1')->getStyle()->getFont()->setBold(true);
+        $katSheet->getCell('B1')->getStyle()->getFont()->setBold(true);
+        $katSheet->getCell('C1')->getStyle()->getFont()->setBold(true);
+        $row = 2;
+        foreach ($kategoriLeaf as $k) {
+            $katSheet->getCell("A{$row}")->setValue($k->kode_kategori);
+            $katSheet->getCell("B{$row}")->setValue($k->nama_kategori);
+            $katSheet->getCell("C{$row}")->setValue($k->kode_kib);
+            $row++;
+        }
+
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $filename = 'template_import_aset.xlsx';
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 }

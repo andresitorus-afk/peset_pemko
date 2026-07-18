@@ -31,6 +31,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('pihak-ketiga', PihakKetigaController::class);
 
     Route::apiResource('aset', AsetController::class);
+    Route::post('/aset/import', [AsetController::class, 'import']);
+    Route::get('/aset/template', [AsetController::class, 'template']);
     Route::get('/aset/{id}/pemanfaatan', [AsetController::class, 'pemanfaatan']);
     Route::get('/aset/{id}/foto', [AsetController::class, 'foto']);
     Route::get('/aset/{id}/riwayat', [AsetController::class, 'riwayat']);

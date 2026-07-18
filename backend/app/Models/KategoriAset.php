@@ -21,10 +21,20 @@ class KategoriAset extends Model
         });
     }
 
-    protected $fillable = ['kode_kib', 'nama_kategori', 'keterangan'];
+    protected $fillable = ['kode_kib', 'kode_kategori', 'nama_kategori', 'keterangan', 'parent_id', 'is_leaf'];
 
     public function aset()
     {
         return $this->hasMany(Aset::class, 'kategori_id');
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(KategoriAset::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(KategoriAset::class, 'parent_id');
     }
 }

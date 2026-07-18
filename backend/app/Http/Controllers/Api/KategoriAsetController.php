@@ -14,6 +14,7 @@ class KategoriAsetController extends Controller
     public function index(Request $request)
     {
         $kategori = KategoriAset::query()
+            ->with('children')
             ->when($request->search, fn ($q, $s) => $q->where('nama_kategori', 'ilike', "%{$s}%"))
             ->orderBy('kode_kib')
             ->paginate($request->get('per_page', 15));
@@ -25,8 +26,11 @@ class KategoriAsetController extends Controller
     {
         $validated = $request->validate([
             'kode_kib' => 'required|string|max:255',
+            'kode_kategori' => 'nullable|string|max:255',
             'nama_kategori' => 'required|string|max:255',
             'keterangan' => 'nullable|string|max:255',
+            'parent_id' => 'nullable|uuid|exists:kategori_aset,id',
+            'is_leaf' => 'boolean',
         ]);
 
         $kategori = KategoriAset::create($validated);
@@ -43,8 +47,11 @@ class KategoriAsetController extends Controller
     {
         $validated = $request->validate([
             'kode_kib' => 'sometimes|required|string|max:255',
+            'kode_kategori' => 'nullable|string|max:255',
             'nama_kategori' => 'sometimes|required|string|max:255',
             'keterangan' => 'nullable|string|max:255',
+            'parent_id' => 'nullable|uuid|exists:kategori_aset,id',
+            'is_leaf' => 'boolean',
         ]);
 
         $kategori_aset->update($validated);

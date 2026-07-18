@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(KategoriAsetSeeder::class);
+
         $admin = User::create(['name' => 'Admin Pemko', 'email' => 'admin@pemkomedan.go.id', 'password' => bcrypt('password')]);
         $petugas = User::create(['name' => 'Petugas Aset', 'email' => 'petugas@pemkomedan.go.id', 'password' => bcrypt('password')]);
 
