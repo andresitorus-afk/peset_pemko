@@ -5,7 +5,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16 sm:h-20">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-teal-700 flex items-center justify-center text-white font-bold text-sm sm:text-base">P</div>
+            <img src="/logo-pemko.jpg" alt="Pemko Medan" class="h-9 sm:h-10">
             <div>
               <p class="text-base sm:text-lg font-bold text-slate-900 leading-tight">PESET</p>
               <p class="text-[11px] sm:text-xs text-slate-500 leading-tight">Pemanfaatan Aset Daerah</p>
@@ -197,7 +197,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-12">
           <div>
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-lg bg-teal-600 flex items-center justify-center text-white font-bold">P</div>
+              <img src="/logo-pemko.jpg" alt="Pemko Medan" class="h-10">
               <div>
                 <p class="text-lg font-bold">PESET</p>
                 <p class="text-xs text-slate-400">Pemanfaatan Aset Daerah</p>
