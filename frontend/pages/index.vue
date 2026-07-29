@@ -307,6 +307,36 @@
             <p class="text-base text-slate-700 mt-1">{{ detailItem.keterangan }}</p>
           </div>
 
+          <!-- GIS / Peta -->
+          <div v-if="detailGis" class="mt-6 border-t border-slate-200 pt-6">
+            <p class="text-sm font-bold text-slate-900 mb-3">Peta & Koordinat</p>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Latitude</p>
+                <p class="text-sm font-medium text-slate-900 mt-0.5">{{ detailGis.latitude || '—' }}</p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Longitude</p>
+                <p class="text-sm font-medium text-slate-900 mt-0.5">{{ detailGis.longitude || '—' }}</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Layer</p>
+                <p class="text-sm font-medium text-slate-900 mt-0.5">{{ detailGis.layer?.nama_layer || '—' }}</p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tipe Geometri</p>
+                <p class="text-sm font-medium text-slate-900 mt-0.5">{{ detailGis.tipe_geometri || '—' }}</p>
+              </div>
+            </div>
+            <div v-if="detailGis.luas_gis" class="mb-3">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Luas (GIS)</p>
+              <p class="text-sm font-medium text-slate-900 mt-0.5">{{ detailGis.luas_gis }} m²</p>
+            </div>
+            <div ref="mapContainer" class="w-full h-64 sm:h-80 rounded-xl border border-slate-200 overflow-hidden z-0"></div>
+          </div>
+
           <div v-if="detailPemanfaatan && detailPemanfaatan.length" class="mt-6 border-t border-slate-200 pt-6">
             <p class="text-sm font-bold text-slate-900 mb-3">Riwayat Pemanfaatan</p>
             <div class="space-y-3">
@@ -356,6 +386,9 @@ const kategoriList = ref<any[]>([])
 const detailItem = ref<any | null>(null)
 const detailFoto = ref<any[]>([])
 const detailPemanfaatan = ref<any[]>([])
+const detailGis = ref<any | null>(null)
+const mapContainer = ref<HTMLDivElement | null>(null)
+let mapInstance: any = null
 
 let searchTimer: ReturnType<typeof setTimeout>
 
@@ -410,17 +443,70 @@ async function fetchData() {
   } catch { items.value = [] } finally { loading.value = false }
 }
 
+function kibColor(kode: string | undefined) {
+  const map: Record<string, string> = {
+    'KIB A': '#22c55e',
+    'KIB B': '#f97316',
+    'KIB C': '#3b82f6',
+    'KIB D': '#a855f7',
+    'KIB E': '#ec4899',
+    'KIB F': '#06b6d4',
+  }
+  return map[kode || ''] || '#64748b'
+}
+
+function initMap() {
+  mapInstance?.remove()
+  mapInstance = null
+  if (!mapContainer.value || !detailGis.value) return
+  const g = detailGis.value
+  const lat = parseFloat(g.latitude)
+  const lng = parseFloat(g.longitude)
+  if (isNaN(lat) || isNaN(lng)) return
+
+  mapInstance = (window as any).L.map(mapContainer.value, { zoomControl: true }).setView([lat, lng], 16)
+  ;(window as any).L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(mapInstance)
+
+  const color = kibColor(detailItem.value?.kategori?.kode_kib)
+
+  if (g.polygon_geojson) {
+    try {
+      const geo = typeof g.polygon_geojson === 'string' ? JSON.parse(g.polygon_geojson) : g.polygon_geojson
+      ;(window as any).L.geoJSON(geo, {
+        style: { color, weight: 2, fillColor: color, fillOpacity: 0.25 }
+      }).addTo(mapInstance).bindPopup(`<b>${detailItem.value?.nama_barang}</b>`)
+    } catch {}
+  } else if (g.tipe_geometri === 'Point' || g.tipe_geometri === 'point') {
+    ;(window as any).L.marker([lat, lng])
+      .addTo(mapInstance)
+      .bindPopup(`<b>${detailItem.value?.nama_barang}</b><br>${lat}, ${lng}`)
+  } else {
+    ;(window as any).L.circleMarker([lat, lng], {
+      radius: 10, color, fillColor: color, fillOpacity: 0.4, weight: 2
+    }).addTo(mapInstance).bindPopup(`<b>${detailItem.value?.nama_barang}</b>`)
+  }
+
+  setTimeout(() => mapInstance?.invalidateSize(), 300)
+}
+
 async function openDetail(item: any) {
   detailItem.value = item
   detailFoto.value = []
   detailPemanfaatan.value = []
+  detailGis.value = null
   try {
     const res = await fetch(`${apiBase}/api/public/aset/${item.id}`)
     const json = await res.json()
     if (json.foto) detailFoto.value = json.foto
     if (json.pemanfaatan) detailPemanfaatan.value = json.pemanfaatan
+    if (json.data?.gis_aset) detailGis.value = json.data.gis_aset
   } catch {}
 }
+
+watch(detailItem, () => nextTick(() => initMap()))
 
 watch(kategoriFilter, () => { page.value = 1; fetchData() })
 
