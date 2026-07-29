@@ -5,14 +5,10 @@
       <div class="w-full max-w-md">
         <!-- Brand -->
         <div class="flex items-center gap-3 mb-10">
-          <div class="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-700 rounded-xl shadow-md flex items-center justify-center flex-shrink-0">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-            </svg>
-          </div>
+          <img src="/logo-pemko.jpg" alt="Pemko Medan" class="h-10">
           <div>
-            <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">SIPEMKO</h1>
-            <p class="text-xs text-slate-500 font-medium">Sistem Pemanfaatan Aset Daerah</p>
+            <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">PESET</h1>
+            <p class="text-xs text-slate-500 font-medium">Pemanfaatan Aset Daerah</p>
           </div>
         </div>
 
@@ -164,7 +160,7 @@
 
         <!-- Footer -->
         <p class="mt-10 text-center text-xs text-slate-400">
-          &copy; {{ new Date().getFullYear() }} SIPEMKO v1.0 &mdash; Pemerintah Kota Medan
+          &copy; {{ new Date().getFullYear() }} PESET v1.0 &mdash; Pemerintah Kota Medan
         </p>
       </div>
     </div>
@@ -189,9 +185,16 @@
 
       <div class="relative z-10 text-center px-12 max-w-lg">
         <!-- Logo Icon -->
-        <div class="w-28 h-28 mx-auto mb-8 bg-white/10 backdrop-blur-xl rounded-3xl flex items-center justify-center shadow-2xl ring-1 ring-white/20">
-          <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+        <div class="w-32 h-32 mx-auto mb-8 bg-white/10 backdrop-blur-xl rounded-3xl flex items-center justify-center shadow-2xl ring-1 ring-white/20">
+          <svg class="w-16 h-16 text-white/90" fill="none" stroke="currentColor" stroke-linejoin="round" viewBox="0 0 80 80">
+            <path d="M12 52V36L40 18L68 36V52" stroke-width="2"/>
+            <rect x="12" y="38" width="10" height="14" rx="1" stroke-width="1.5"/>
+            <rect x="58" y="38" width="10" height="14" rx="1" stroke-width="1.5"/>
+            <path d="M16 34C16 26 64 26 64 34" stroke-width="1.5"/>
+            <path d="M30 30C30 20 50 20 50 30" stroke-width="2"/>
+            <rect x="34" y="44" width="12" height="8" rx="4" stroke-width="1.5"/>
+            <rect x="18" y="42" width="4" height="4" rx="1" stroke-width="1"/>
+            <rect x="58" y="42" width="4" height="4" rx="1" stroke-width="1"/>
           </svg>
         </div>
 
