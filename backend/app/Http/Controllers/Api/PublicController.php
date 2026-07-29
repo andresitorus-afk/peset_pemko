@@ -19,6 +19,7 @@ class PublicController extends Controller
                   ->orWhere('alamat', 'ilike', "%{$s}%");
             }))
             ->when(request('kategori'), fn ($q, $v) => $q->where('kategori_id', $v))
+            ->when(request('kib'), fn ($q, $v) => $q->whereHas('kategori', fn ($q) => $q->whereIn('kode_kib', explode(',', $v))))
             ->when(request('status'), fn ($q, $v) => $q->where('status', $v))
             ->when(request('opd'), fn ($q, $v) => $q->where('opd_id', $v))
             ->orderBy('nama_barang')

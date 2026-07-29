@@ -62,7 +62,7 @@
           <button v-for="k in kategoriList" :key="k.id" @click="kategoriFilter = k.id"
             :class="kategoriFilter === k.id ? 'bg-teal-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
             class="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-            {{ k.nama_kategori }}
+            {{ k.kode_kib }} — {{ k.nama_kategori }}
           </button>
         </div>
       </div>
@@ -433,7 +433,7 @@ function onSearch() {
 async function fetchData() {
   loading.value = true
   try {
-    const params = new URLSearchParams({ page: String(page.value), per_page: '12' })
+    const params = new URLSearchParams({ page: String(page.value), per_page: '12', kib: 'KIB A,KIB C' })
     if (search.value) params.set('search', search.value)
     if (kategoriFilter.value) params.set('kategori', kategoriFilter.value)
     const res = await fetch(`${apiBase}/api/public/aset?${params}`)
@@ -525,8 +525,9 @@ async function loadKategori() {
     const json = await res.json()
     const cats = new Map()
     ;(json.data || []).forEach((a: any) => {
-      if (a.kategori && a.kategori.id && !cats.has(a.kategori.id)) {
-        cats.set(a.kategori.id, { id: a.kategori.id, nama_kategori: a.kategori.nama_kategori })
+      const k = a.kategori
+      if (k && k.id && ['KIB A','KIB C'].includes(k.kode_kib) && !cats.has(k.id)) {
+        cats.set(k.id, { id: k.id, nama_kategori: k.nama_kategori, kode_kib: k.kode_kib })
       }
     })
     kategoriList.value = Array.from(cats.values())
