@@ -455,10 +455,14 @@ function kibColor(kode: string | undefined) {
   return map[kode || ''] || '#64748b'
 }
 
-function initMap() {
+function initMap(retries = 0) {
   mapInstance?.remove()
   mapInstance = null
   if (!mapContainer.value || !detailGis.value) return
+  if (!(window as any).L) {
+    if (retries < 20) setTimeout(() => initMap(retries + 1), 250)
+    return
+  }
   const g = detailGis.value
   const lat = parseFloat(g.latitude)
   const lng = parseFloat(g.longitude)
@@ -502,11 +506,15 @@ async function openDetail(item: any) {
     const json = await res.json()
     if (json.foto) detailFoto.value = json.foto
     if (json.pemanfaatan) detailPemanfaatan.value = json.pemanfaatan
-    if (json.data?.gis_aset) detailGis.value = json.data.gis_aset
+    if (json.data?.gis_aset) {
+      detailGis.value = json.data.gis_aset
+      await nextTick()
+      initMap()
+    }
   } catch {}
 }
 
-watch(detailItem, () => nextTick(() => initMap()))
+watch(detailGis, (v) => { if (v) nextTick(() => initMap()) })
 
 watch(kategoriFilter, () => { page.value = 1; fetchData() })
 
