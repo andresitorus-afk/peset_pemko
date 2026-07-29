@@ -7,6 +7,7 @@ use App\Http\Resources\JenisPemanfaatanResource;
 use App\Models\JenisPemanfaatan;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 
 class JenisPemanfaatanController extends Controller
@@ -56,6 +57,11 @@ class JenisPemanfaatanController extends Controller
 
     public function destroy(JenisPemanfaatan $jenis_pemanfaatan): JsonResponse
     {
+        if (\App\Models\Pemanfaatan::where('jenis_id', $jenis_pemanfaatan->id)->exists()) {
+            throw ValidationException::withMessages([
+                'jenis' => 'Jenis pemanfaatan masih digunakan. Tidak bisa dihapus.',
+            ]);
+        }
         $jenis_pemanfaatan->delete();
         return response()->json(['message' => 'Berhasil dihapus.']);
     }

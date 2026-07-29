@@ -7,6 +7,7 @@ use App\Http\Resources\KategoriAsetResource;
 use App\Models\KategoriAset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 
 class KategoriAsetController extends Controller
@@ -61,6 +62,16 @@ class KategoriAsetController extends Controller
 
     public function destroy(KategoriAset $kategori_aset): JsonResponse
     {
+        if ($kategori_aset->children()->exists()) {
+            throw ValidationException::withMessages([
+                'kategori' => 'Kategori masih memiliki sub-kategori. Tidak bisa dihapus.',
+            ]);
+        }
+        if ($kategori_aset->aset()->exists()) {
+            throw ValidationException::withMessages([
+                'kategori' => 'Kategori masih digunakan oleh aset. Tidak bisa dihapus.',
+            ]);
+        }
         $kategori_aset->delete();
         return response()->json(['message' => 'Berhasil dihapus.']);
     }

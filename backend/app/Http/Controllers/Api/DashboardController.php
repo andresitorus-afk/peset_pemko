@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Aset;
+use App\Models\Opd;
 use App\Models\Pemanfaatan;
+use App\Models\PihakKetiga;
+use App\Models\RiwayatAset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -13,6 +16,8 @@ class DashboardController extends Controller
     public function index(): JsonResponse
     {
         $totalAset = Aset::count();
+        $totalOpd = Opd::count();
+        $totalPihakKetiga = PihakKetiga::count();
 
         $asetPerKategori = Aset::selectRaw('kategori_aset.nama_kategori, count(*) as total')
             ->join('kategori_aset', 'aset.kategori_id', '=', 'kategori_aset.id')
@@ -45,8 +50,22 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        $aktivitasTerbaru = RiwayatAset::with('user')
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get()
+            ->map(fn ($r) => [
+                'id' => $r->id,
+                'aksi' => $r->aksi,
+                'deskripsi' => $r->deskripsi,
+                'user_name' => $r->user?->name,
+                'created_at' => $r->created_at,
+            ]);
+
         return response()->json([
             'total_aset' => $totalAset,
+            'total_opd' => $totalOpd,
+            'total_pihak_ketiga' => $totalPihakKetiga,
             'aset_per_kategori' => $asetPerKategori,
             'aset_per_status' => $asetPerStatus,
             'total_nilai_perolehan' => $totalNilaiPerolehan,
@@ -55,6 +74,7 @@ class DashboardController extends Controller
             'pemanfaatan_segera_berakhir' => $pemanfaatanSegeraBerakhir,
             'pemanfaatan_per_jenis' => $pemanfaatanPerJenis,
             'pihak_ketiga_terbanyak' => $pihakKetigaTerbanyak,
+            'aktivitas_terbaru' => $aktivitasTerbaru,
         ]);
     }
 }

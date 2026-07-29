@@ -26,6 +26,8 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
+        $user->load('role');
+
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json(['user' => $user, 'token' => $token], 201);
@@ -45,6 +47,7 @@ class AuthController extends Controller
         }
 
         $user = User::where('email', $request->email)->firstOrFail();
+        $user->load('role');
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json(['user' => $user, 'token' => $token]);
@@ -58,6 +61,6 @@ class AuthController extends Controller
 
     public function user(Request $request): JsonResponse
     {
-        return response()->json($request->user());
+        return response()->json($request->user()->load('role'));
     }
 }

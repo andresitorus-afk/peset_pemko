@@ -8,6 +8,7 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+      - /app/.nuxt
     depends_on:
       - backend
     environment:

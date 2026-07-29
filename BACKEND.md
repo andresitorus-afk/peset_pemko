@@ -1,401 +1,554 @@
-# Backend API - Pemanfaatan Aset Pemko Medan
+# Backend — Pemanfaatan Aset Pemko Medan
 
 ## Arsitektur Umum
 
-Backend ini dibangun dengan **Laravel 13** + **PostgreSQL** + **Sanctum Auth**.
-Strukturnya mengikuti pola standar Laravel: Model → Resource → Controller → Route.
+```
+┌──────────────┐    ┌──────────────┐    ┌────────────────────┐
+│   Frontend   │───▶│   Laravel    │───▶│   PostgreSQL 15    │
+│   Nuxt 3     │    │   API-only   │    │   (via Docker)     │
+│   :3000      │    │   :8000      │    │   :5433 external   │
+└──────────────┘    └──────┬───────┘    └────────────────────┘
+                           │
+                    ┌──────▼───────┐
+                    │  Sanctum     │
+                    │  Token Auth  │
+                    └──────────────┘
+```
+
+**Stack:** Laravel 13 (API-only, no Blade), Nuxt 3 (SSR), PostgreSQL 15, Docker Compose, Sanctum token auth, Maatwebsite Excel.
+
+---
+
+## Database — Schema & Hubungan Antar Tabel
+
+### ERD (Entity Relationship Diagram)
 
 ```
-backend/app/
-├── Models/              # 11 model Eloquent (representasi tabel database)
-├── Http/
-│   ├── Controllers/Api/ # 13 controller (logic API)
-│   └── Resources/       # 12 resource (format JSON response)
-routes/api.php           # 53 endpoint API
+┌─────────────────┐       ┌──────────────────┐
+│     users        │       │       opd         │
+├─────────────────┤       ├──────────────────┤
+│ id (bigint PK)  │       │ id (uuid PK)     │
+│ name             │       │ kode_opd (unique) │
+│ email (unique)   │       │ nama_opd         │
+│ password         │       │ alamat           │
+│ ...              │       │ telepon          │
+└────────┬────────┘       │ kepala_opd       │
+         │                 │ nip_kepala       │
+         │                 └────────┬─────────┘
+         │                          │
+         │ 1:N (created_by)         │ 1:N (opd_id)
+         │                          │
+┌────────▼──────────────────────────▼─────────┐
+│                   aset                        │
+├──────────────────────────────────────────────┤
+│ id (uuid PK)                                │
+│ opd_id (FK → opd.id)           RESTRICT DEL │
+│ kategori_id (FK → kategori_aset.id) RESTRICT│
+│ kode_barang (unique)                         │
+│ register                                     │
+│ nama_barang                                  │
+│ tahun_perolehan (int)                        │
+│ nilai_perolehan (decimal 20,2)               │
+│ nilai_buku (decimal 20,2)                    │
+│ luas (decimal 15,2) — m²                     │
+│ kondisi: Baik | Rusak_Ringan | Rusak_Berat   │
+│ status: Aktif | Idle | Dimanfaatkan          │
+│ alamat                                       │
+│ keterangan                                   │
+│ created_at, updated_at                       │
+└───┬──────────┬──────────┬──────────┬────────┘
+    │          │          │          │
+    │1:1       │1:N       │1:N       │1:N
+    ▼          ▼          ▼          ▼
+┌────────┐ ┌────────┐ ┌────────┐ ┌──────────┐
+│gis_aset│ │pemanfaa-│ │foto_aset│ │riwayat_aset│
+│        │ │tan     │ │        │ │          │
+└────────┘ └────┬───┘ └────────┘ └──────────┘
+                │
+                │1:N
+                ▼
+          ┌────────────────────┐
+          │dokumen_pemanfaatan │
+          └────────────────────┘
+```
+
+### Tabel-Tabel Utama
+
+#### 1. `users` — Pengguna Sistem
+| Kolom | Tipe | Keterangan |
+|-------|------|------------|
+| id | bigint (PK) | Auto-increment |
+| name | varchar | Nama pengguna |
+| email | varchar (unique) | Email login |
+| password | varchar | Hashed |
+| remember_token | varchar | Remember me |
+
+Relasi: `riwayat_aset.user_id` → users (nullOnDelete). Juga `pemanfaatan.created_by` → users.
+
+---
+
+#### 2. `opd` — Organisasi Perangkat Daerah
+| Kolom | Tipe | Keterangan |
+|-------|------|------------|
+| id | uuid (PK) | gen_random_uuid() |
+| kode_opd | varchar (unique) | Contoh: "OPD.001" |
+| nama_opd | varchar | Contoh: "Dinas Pendidikan" |
+| alamat | varchar (nullable) | |
+| telepon | varchar (nullable) | |
+| kepala_opd | varchar (nullable) | Nama kepala |
+| nip_kepala | varchar (nullable) | NIP kepala |
+
+Relasi: 1 OPD → banyak Aset (`opd.aset()` → HasMany Aset)
+
+---
+
+#### 3. `kategori_aset` — Klasifikasi Aset (KIB + Sub-kategori)
+| Kolom | Tipe | Keterangan |
+|-------|------|------------|
+| id | uuid (PK) | gen_random_uuid() |
+| kode_kib | varchar | Kode induk: "KIB A" s/d "KIB F" |
+| kode_kategori | varchar (nullable) | Kode lengkap, misal "1.3.1.01.01.01.001" |
+| nama_kategori | varchar | Nama uraian |
+| keterangan | varchar (nullable) | |
+| parent_id | uuid FK → kategori_aset (nullable) | Self-referencing FK untuk hirarki |
+| is_leaf | boolean (default false) | true = sub-kategori paling detail, bisa dipilih untuk aset |
+
+**Struktur Hirarki:**
+```
+KIB A (induk, parent_id=null, is_leaf=false)
+  └── 1.3.1 Tanah (kode_kategori, is_leaf=false)
+        └── 1.3.1.01.01.01.001 [Uraian] (is_leaf=true) ← dipilih untuk aset
+KIB C (induk, parent_id=null, is_leaf=false)
+  └── ...
+```
+
+**Isi seed dari XLS:**
+- KIB A (Tanah): 226 sub-kategori dari `KIBA.xlsx`
+- KIB C (Gedung dan Bangunan): 378 sub-kategori dari `KIBC.xlsx`
+
+Relasi: 
+- 1 Kategori → banyak Aset (`kategori.aset()` → HasMany)
+- 1 Kategori → parent (`kategori.parent()` → BelongsTo self)
+- 1 Kategori → children (`kategori.children()` → HasMany self)
+
+---
+
+#### 4. `aset` — Data Aset (Tabel Inti)
+Relasi:
+- `aset.opd()` → BelongsTo Opd (opd_id FK, restrictOnDelete)
+- `aset.kategori()` → BelongsTo KategoriAset (kategori_id FK, restrictOnDelete)
+- `aset.gisAset()` → HasOne GisAset (satu aset punya satu data GIS)
+- `aset.pemanfaatan()` → HasMany Pemanfaatan (satu aset bisa dimanfaatkan berkali-kali)
+- `aset.foto()` → HasMany FotoAset
+- `aset.riwayat()` → HasMany RiwayatAset
+
+Scope: `search(nama_barang/kode_barang ilike)`, `filter(opd_id/kategori_id/kondisi/status)`
+
+---
+
+#### 5. `gis_aset` — Koordinat/Polygon Aset di Peta
+| Kolom | Tipe | Keterangan |
+|-------|------|------------|
+| id | uuid (PK) | |
+| aset_id | uuid FK (unique) → aset | CASCADE delete |
+| layer_id | uuid FK → gis_layer | RESTRICT delete |
+| latitude | decimal(10,7) | |
+| longitude | decimal(10,7) | |
+| polygon_geojson | jsonb | Batas area polygon |
+| luas_gis | decimal(15,2) | Luas dari pengukuran |
+| tipe_geometri | varchar | Point, Polygon, Polyline |
+| foto_udara_url | varchar (nullable) | |
+| sumber_koordinat | varchar | GPS, Survey, GoogleMaps |
+| surveyed_at | timestamp | |
+
+Relasi: `gis_aset.aset()` → BelongsTo Aset, `gis_aset.layer()` → BelongsTo GisLayer
+
+---
+
+#### 6. `gis_layer` — Layer Peta
+| Kolom | Tipe | Keterangan |
+|-------|------|------------|
+| id | uuid (PK) | |
+| nama_layer | varchar | Tanah, Bangunan, Jalan, Fasilitas Umum |
+| warna | varchar | Hex color |
+| icon_marker | varchar | |
+| is_active | boolean | |
+
+Relasi: `layer.gisAset()` → HasMany GisAset
+
+---
+
+#### 7. `pemanfaatan` — Pemanfaatan Aset (Inti Bisnis)
+| Kolom | Tipe | Keterangan |
+|-------|------|------------|
+| id | uuid (PK) | |
+| aset_id | FK → aset | RESTRICT delete |
+| jenis_id | FK → jenis_pemanfaatan | RESTRICT delete |
+| pihak_ketiga_id | FK → pihak_ketiga | RESTRICT delete |
+| nomor_perjanjian | varchar | |
+| tanggal_mulai | date | |
+| tanggal_selesai | date | |
+| nilai_kontrak | decimal(20,2) | |
+| kontribusi_tahunan | decimal(20,2) | |
+| peruntukan | varchar | |
+| status | varchar | Aktif, Berakhir, Dibatalkan |
+| catatan | text | |
+| created_by | FK → users | nullOnDelete |
+| created_at | timestamp | created_at only (UPDATED_AT = null) |
+
+Relasi:
+- `pemanfaatan.aset()` → BelongsTo Aset
+- `pemanfaatan.jenis()` → BelongsTo JenisPemanfaatan
+- `pemanfaatan.pihakKetiga()` → BelongsTo PihakKetiga
+- `pemanfaatan.creator()` → BelongsTo User (created_by)
+- `pemanfaatan.dokumen()` → HasMany DokumenPemanfaatan
+
+---
+
+#### 8. `jenis_pemanfaatan` — Jenis Pemanfaatan
+| Kolom | Tipe | Keterangan |
+|-------|------|------------|
+| id | uuid (PK) | |
+| kode | varchar | SEWA, PKP, KSP, BGS, BSG, KSPI |
+| nama | varchar | Sewa, Pinjam Pakai, KSP, dsb |
+| dasar_hukum | text | |
+| ketentuan | text | |
+
+Relasi: 1 jenis → banyak Pemanfaatan
+
+---
+
+#### 9. `pihak_ketiga` — Pihak Ketiga
+| Kolom | Tipe | Keterangan |
+|-------|------|------------|
+| id | uuid (PK) | |
+| nama | varchar | Nama perusahaan/orang |
+| jenis | varchar | Perorangan, Badan_Hukum, Pemda |
+| npwp | varchar | |
+| alamat, telepon, email | varchar | |
+| penanggung_jawab | varchar | |
+
+Relasi: 1 pihak → banyak Pemanfaatan
+
+---
+
+#### 10. `dokumen_pemanfaatan` — File Dokumen Perjanjian
+| Kolom | Tipe | Keterangan |
+|-------|------|------------|
+| id | uuid (PK) | |
+| pemanfaatan_id | FK → pemanfaatan | CASCADE delete |
+| jenis_dokumen | varchar | SK, Perjanjian, BA, Perpanjangan |
+| nomor_dokumen | varchar | |
+| tanggal_dokumen | date | |
+| file_path | varchar | Storage path |
+| file_name | varchar | Original filename |
+
+Relasi: `dokumen.pemanfaatan()` → BelongsTo Pemanfaatan
+
+---
+
+#### 11. `foto_aset` — Foto Aset
+| Kolom | Tipe | Keterangan |
+|-------|------|------------|
+| id | uuid (PK) | |
+| aset_id | FK → aset | CASCADE delete |
+| file_path | varchar | Storage path |
+| caption | varchar | |
+| tipe | varchar | Depan, Samping, Udara, Lainnya |
+| tanggal_foto | date | |
+
+---
+
+#### 12. `riwayat_aset` — Log Aktivitas Aset
+| Kolom | Tipe | Keterangan |
+|-------|------|------------|
+| id | uuid (PK) | |
+| aset_id | FK → aset | CASCADE delete |
+| aksi | varchar | Pemanfaatan, Pemeliharaan, Mutasi, Penghapusan, Revaluasi |
+| deskripsi | text | |
+| user_id | FK → users | nullOnDelete |
+| created_at | timestamp | created_at only |
+
+---
+
+## API Routes
+
+Semua route di prefix `/api`, kecuali `/register` dan `/login`.
+
+### Publik
+| Metode | Endpoint | Controller | Keterangan |
+|--------|----------|------------|------------|
+| POST | `/api/register` | AuthController@register | Daftar akun baru |
+| POST | `/api/login` | AuthController@login | Login, dapat token |
+
+### Authenticated (auth:sanctum)
+
+#### Auth
+| GET | `/api/user` | AuthController@user | Data user login |
+| POST | `/api/logout` | AuthController@logout | Hapus token |
+
+#### Dashboard
+| GET | `/api/dashboard` | DashboardController@index | Statistik total aset, nilai, pemanfaatan |
+
+#### Master Data
+| Method | Endpoint | Controller | Keterangan |
+|--------|----------|------------|------------|
+| CRUD | `/api/opd` | OpdController | OPD (apiResource) |
+| CRUD | `/api/kategori-aset` | KategoriAsetController | Kategori Aset dengan children |
+| CRUD | `/api/gis-layer` | GisLayerController | Layer Peta |
+| CRUD | `/api/jenis-pemanfaatan` | JenisPemanfaatanController | Jenis Pemanfaatan |
+| CRUD | `/api/pihak-ketiga` | PihakKetigaController | Pihak Ketiga |
+
+#### Aset
+| Method | Endpoint | Controller | Keterangan |
+|--------|----------|------------|------------|
+| GET/POST | `/api/aset` | AsetController@index/store | List (dengan search + filter) / Create |
+| GET/PUT/DELETE | `/api/aset/{id}` | AsetController@show/update/destroy | Detail / Update / Hapus |
+| POST | `/api/aset/import` | AsetController@import | Import Excel/CSV |
+| GET | `/api/aset/template` | AsetController@template | Download template XLSX |
+| GET | `/api/aset/{id}/pemanfaatan` | AsetController@pemanfaatan | Pemanfaatan per aset |
+| GET | `/api/aset/{id}/foto` | AsetController@foto | Foto per aset |
+| GET | `/api/aset/{id}/riwayat` | AsetController@riwayat | Riwayat per aset |
+
+#### Pemanfaatan
+| Method | Endpoint | Controller | Keterangan |
+|--------|----------|------------|------------|
+| GET/POST | `/api/pemanfaatan` | PemanfaatanController@index/store | List / Create |
+| GET/PUT/DELETE | `/api/pemanfaatan/{id}` | PemanfaatanController@show/update/destroy | Detail / Update / Hapus |
+| GET | `/api/pemanfaatan/{id}/dokumen` | PemanfaatanController@dokumen | Dokumen per pemanfaatan |
+
+#### Dokumen & Foto (Upload)
+| POST | `/api/dokumen-pemanfaatan` | DokumenPemanfaatanController@store | Upload dokumen |
+| DELETE | `/api/dokumen-pemanfaatan/{id}` | DokumenPemanfaatanController@destroy | Hapus dokumen |
+| POST | `/api/foto-aset` | FotoAsetController@store | Upload foto |
+| DELETE | `/api/foto-aset/{id}` | FotoAsetController@destroy | Hapus foto |
+
+#### Riwayat
+| GET | `/api/riwayat-aset` | RiwayatAsetController@index | List riwayat |
+| POST | `/api/riwayat-aset` | RiwayatAsetController@store | Tambah riwayat manual |
+
+#### GIS (Peta)
+| GET | `/api/gis/aset` | GisAsetController@index | GeoJSON (supports bbox & layer_id) |
+| GET | `/api/gis/aset/{id}` | GisAsetController@show | GeoJSON single fitur |
+| GET | `/api/gis/layer/{id}` | GisAsetController@byLayer | GeoJSON semua aset di layer |
+
+---
+
+## Alur Kerja Utama
+
+### 1. Login & Auth Flow
+
+```
+Frontend (Nuxt)              Backend (Laravel)           PostgreSQL
+    │                              │                         │
+    │  POST /api/login             │                         │
+    │  {email, password}          │                         │
+    │ ─────────────────────────▶  │  Auth::attempt()        │
+    │                              │ ─────────────────────▶  │ SELECT users WHERE email=?
+    │                              │  ◀───────────────────── │
+    │                              │                         │
+    │  {user, token}              │  $user->createToken()   │
+    │ ◀─────────────────────────  │ ─────────────────────▶  │ INSERT personal_access_tokens
+    │                              │                         │
+    │  Header: Authorization:      │                         │
+    │  Bearer <token>              │                         │
+```
+
+Frontend menyimpan token, setiap request API kirim header `Authorization: Bearer <token>`.
+
+---
+
+### 2. Alur CRUD Aset
+
+```
+Frontend                      Backend                       DB
+   │                              │                          │
+   │  GET /api/aset               │                          │
+   │  ?search=...&opd_id=...     │  Aset::query()           │
+   │ ─────────────────────────▶  │    ->with('opd,kategori') │
+   │                              │    ->search()            │
+   │                              │    ->filter()            │
+   │                              │    ->paginate()          │
+   │                              │ ─────────────────────▶   │ SELECT + JOIN
+   │                              │ ◀─────────────────────   │
+   │  AsetResource::collection() │                          │
+   │ ◀─────────────────────────  │                          │
+```
+
+**Store:** `POST /api/aset` → validate → `Aset::create()` → return AsetResource
+
+**Update:** `PUT /api/aset/{id}` → validate → `$aset->update()` → jika status berubah, otomatis buat RiwayatAset → return AsetResource
+
+---
+
+### 3. Alur Pemanfaatan Aset (Bisnis Inti)
+
+```
+                    ┌─────────────────────────────────────┐
+                    │         PEMANFAATAN ASET             │
+                    └─────────────────────────────────────┘
+
+1. POST /api/pemanfaatan
+   Input: aset_id, jenis_id, pihak_ketiga_id, tanggal, nilai, dll
+
+2. Backend:
+   - Validate semua FK exists
+   - Pemanfaatan::create()
+   - JIKA status Aktif:
+     → Aset.update(status='Dimanfaatkan')
+     → Aset.riwayat().create(aksi='Pemanfaatan', deskripsi=...)
+
+3. DELETE /api/pemanfaatan/{id}
+   - Delete pemanfaatan
+   - Cek: apakah aset masih punya pemanfaatan aktif?
+   - JIKA TIDAK → Aset.update(status='Aktif') + riwayat
+```
+
+Status Aset otomatis berubah:
+- `Aktif` → `Dimanfaatkan` (saat pemanfaatan baru dibuat)
+- `Dimanfaatkan` → `Aktif` (saat semua pemanfaatan dihapus)
+
+---
+
+### 4. Alur Import Excel
+
+```
+Frontend                      Backend                       DB
+   │                              │                          │
+   │  POST /api/aset/import       │                          │
+   │  file: aset.xlsx             │                          │
+   │ ─────────────────────────▶  │                          │
+   │                              │  Excel::import()         │
+   │                              │  AsetImport::collection()│
+   │                              │    ┌──────────────┐      │
+   │                              │    │ DB::beginTransaction│
+   │                              │    └──────────────┘      │
+   │                              │    ForEach row:          │
+   │                              │      resolveOpd(row)     │
+   │                              │        → cache lookup    │
+   │                              │      resolveKategori(row)│
+   │                              │        → cache lookup    │
+   │                              │      Check duplicate     │
+   │                              │        → skip if exists  │
+   │                              │      normalizeKondisi()  │
+   │                              │      normalizeStatus()   │
+   │                              │      Aset::create()      │
+   │                              │ ─────────────────────▶   │ INSERT aset
+   │                              │    ┌──────────────┐      │
+   │                              │    │ DB::commit() │      │
+   │                              │    └──────────────┘      │
+   │  {success, failed, errors}  │                          │
+   │ ◀─────────────────────────  │                          │
+```
+
+**Kolom XLS yang diperlukan:**
+`kode_barang`, `register`, `nama_barang`, `opd`, `kode_kategori`, `tahun_perolehan`, `nilai_perolehan`, `nilai_buku`, `luas`, `kondisi`, `status`, `alamat`, `keterangan`
+
+**Resolusi Otomatis:**
+- `opd` bisa diisi nama_opd ATAU kode_opd → resolve ke opd.id
+- `kode_kategori` / `kode_kib` / `nama_kategori` → resolve ke kategori_aset.id
+- `kondisi`: "baik" → Baik, "rusak ringan" → Rusak_Ringan, "rusak berat" → Rusak_Berat
+- `status`: "dimanfaatkan" → Dimanfaatkan, "idle" → Idle, default Aktif
+
+**Template Download:** `GET /api/aset/template` → XLSX dengan 3 sheet:
+1. Sheet utama: header kolom + 1 baris sample
+2. Sheet "Data OPD": daftar kode_opd & nama_opd
+3. Sheet "Data Kategori": daftar kode_kategori & nama (is_leaf=true)
+
+---
+
+### 5. Alur GIS (Peta)
+
+```
+Frontend (Map)                 Backend                       DB
+   │                              │                          │
+   │  GET /api/gis/aset           │                          │
+   │  ?bbox=west,south,east,north │                          │
+   │  &layer_id=...               │                          │
+   │ ─────────────────────────▶  │  GisAset::query()        │
+   │                              │    ->with('aset.opd,layer│
+   │                              │    ->whereBetween(lon)   │
+   │                              │    ->whereBetween(lat)   │
+   │                              │ ─────────────────────▶   │ SELECT gis_aset + JOIN
+   │                              │ ◀─────────────────────   │
+   │                              │  map → GeoJSON Feature   │
+   │  FeatureCollection {         │  FeatureCollection {     │
+   │    features: [...]           │    features: [...]       │
+   │  }                           │  }                       │
+   │ ◀─────────────────────────  │                          │
+```
+
+Setiap fitur GeoJSON berisi:
+- `geometry`: Point atau Polygon dari gis_aset
+- `properties`: kode_barang, nama, status, kondisi, layer, luas
+
+---
+
+## Seed Data (Demo)
+
+`DatabaseSeeder` menjalankan `KategoriAsetSeeder` dulu, lalu insert demo data:
+
+| Entity | Jumlah | Isi |
+|--------|--------|-----|
+| User | 2 | admin@pemkomedan.go.id, petugas@pemkomedan.go.id |
+| OPD | 6 | Dinas Pendidikan, Kesehatan, PUPR, Kebersihan, Perhubungan, Pengendalian Penduduk |
+| Kategori KIB | 6 induk + 604 sub | KIB A (226 sub), KIB C (378 sub) |
+| GIS Layer | 4 | Tanah, Bangunan, Jalan, Fasilitas Umum |
+| Jenis Pemanfaatan | 5 | Sewa, Pinjam Pakai, KSP, Bagi Hasil, Bantuan Sosial |
+| Pihak Ketiga | 6 | Bank Sumut, Telkom, Tirtanadi, Pertamina, Perorangan, Yayasan |
+| Aset | 10 | Tanah (3), Gedung (3), Peralatan (4) |
+| GisAset | 4 | 2 polygon tanah, 2 point bangunan |
+| Pemanfaatan | 4 | 3 aktif, 1 berakhir |
+| Dokumen | 3 | SK + Perjanjian |
+| Foto | 3 | Depan/Samping |
+| Riwayat | 3 | Pemanfaatan, Pemeliharaan, Mutasi |
+
+---
+
+## File Structure
+
+```
+backend/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/Api/
+│   │   │   ├── AuthController.php          # Register, Login, Logout, User
+│   │   │   ├── DashboardController.php     # Statistik ringkasan
+│   │   │   ├── AsetController.php          # CRUD + import + template
+│   │   │   ├── OpdController.php           # CRUD OPD
+│   │   │   ├── KategoriAsetController.php  # CRUD Kategori (hirarki)
+│   │   │   ├── GisLayerController.php      # CRUD Layer Peta
+│   │   │   ├── GisAsetController.php       # GeoJSON API
+│   │   │   ├── JenisPemanfaatanController.php
+│   │   │   ├── PihakKetigaController.php
+│   │   │   ├── PemanfaatanController.php   # CRUD + auto-status aset
+│   │   │   ├── DokumenPemanfaatanController.php # Upload dokumen
+│   │   │   ├── FotoAsetController.php      # Upload foto
+│   │   │   └── RiwayatAsetController.php   # Log aktivitas
+│   │   └── Resources/                      # 12 JsonResource (format output)
+│   ├── Imports/
+│   │   └── AsetImport.php                  # Maatwebsite Excel import
+│   └── Models/                             # 12 Model (Eloquent)
+├── database/
+│   ├── migrations/                         # 16 migration files
+│   └── seeders/
+│       ├── DatabaseSeeder.php              # Full demo data
+│       └── KategoriAsetSeeder.php          # Import KIB dari XLSX
+├── routes/
+│   └── api.php                             # Semua route API
+└── config/
+    ├── auth.php                            # Eloquent driver
+    └── sanctum.php                         # Token auth, no expiry
 ```
 
 ---
 
-## 1. Model (Representasi Database)
-
-Model adalah class PHP yang merepresentasikan satu tabel database. Setiap model punya:
-- `$table` — nama tabel
-- `$fillable` — kolom yang boleh diisi massal
-- `$casts` — otomatis konversi tipe data
-- **Relationship** — relasi ke tabel lain
-
-### Reference Tables (Tabel Referensi)
-
-| Model | Tabel | Fungsi | Relasi |
-|-------|-------|--------|--------|
-| `Opd` | `opd` | Data Organisasi Perangkat Daerah |hasMany → Aset |
-| `KategoriAset` | `kategori_aset` | Kategori aset (KIB A-F) | hasMany → Aset |
-| `GisLayer` | `gis_layer` | Layer peta GIS (Tanah, Bangunan, dll) | hasMany → GisAset |
-| `JenisPemanfaatan` | `jenis_pemanfaatan` | Jenis pemanfaatan (Sewa, Pinjam Pakai, dll) | hasMany → Pemanfaatan |
-| `PihakKetiga` | `pihak_ketiga` | Data pihak ketiga (perorangan/badan hukum) | hasMany → Pemanfaatan |
-
-### Core Tables (Tabel Inti)
-
-| Model | Tabel | Fungsi | Relasi |
-|-------|-------|--------|--------|
-| `Aset` | `aset` | Data aset Pemko Medan | belongsTo Opd, KategoriAset; hasOne GisAset; hasMany Pemanfaatan, FotoAset, RiwayatAset |
-| `GisAset` | `gis_aset` | Koordinat/geometri aset di peta | belongsTo Aset, GisLayer |
-| `Pemanfaatan` | `pemanfaatan` | Record pemanfaatan/pinjam pakai aset | belongsTo Aset, JenisPemanfaatan, PihakKetiga, User; hasMany DokumenPemanfaatan |
-| `DokumenPemanfaatan` | `dokumen_pemanfaatan` | File dokumen (SK, Perjanjian, dll) | belongsTo Pemanfaatan |
-| `FotoAset` | `foto_aset` | Foto aset | belongsTo Aset |
-| `RiwayatAset` | `riwayat_aset` | Log/perubahan status aset | belongsTo Aset, User |
-
-### Fitur Khusus di Model
-
-**Aset punya Scope untuk Search & Filter:**
-```php
-// Digunakan di controller seperti ini:
-Aset::search($request->search)->filter($request->only(['opd_id', 'kategori_id']))->get();
-
-// ScopeSearch: mencari by nama_barang atau kode_barang (case-insensitive pakai ilike)
-// ScopeFilter: filter by opd_id, kategori_id, kondisi, status
-```
-
-**GisAset punya Method GeoJSON:**
-```php
-// Mengubah data aset jadi format GeoJSON untuk peta
-$gis->toGeoJsonGeometry(); 
-// → {"type": "Point", "coordinates": [98.6722, 3.5952]}
-```
-
-**Pemanfaatan & RiwayatAset:**
-```php
-// Tidak punya updated_at (hanya created_at)
-const UPDATED_AT = null;
-```
-
----
-
-## 2. API Resource (Format JSON Response)
-
-Resource mengontrol bagaimana data model ditampilkan sebagai JSON. Tanpa resource, Eloquent mengembalikan semua kolom. Dengan resource, kita bisa:
-- Pilih kolom mana yang ditampilkan
-- Sertakan relasi hanya jika di-load
-- Format tanggal, angka, dll
-
-### Contoh: AsetResource
-
-```json
-{
-  "id": "uuid-aset",
-  "kode_barang": "A.001",
-  "nama_barang": "Gedung Kantor",
-  "status": "Dimanfaatkan",
-  "kondisi": "Baik",
-  "opd": {
-    "id": "uuid-opd",
-    "nama_opd": "Dinas PUPR"
-  },
-  "kategori": {
-    "id": "uuid-kategori",
-    "kode_kib": "B",
-    "nama_kategori": "Peralatan"
-  },
-  "pemanfaatan_count": 2,
-  "foto_count": 5
-}
-```
-
-**`whenLoaded()`** — relasi hanya muncul jika di-load di controller:
-```php
-'opd' => new OpdResource($this->whenLoaded('opd')),
-// Jika $aset->load('opd') dipanggil → opd muncul
-// Jika tidak → opd = null
-```
-
----
-
-## 3. Controller (Logic API)
-
-Controller menangani request masuk, validasi, proses data, dan return response.
-
-### AuthController
-**Endpoint:** POST `/api/register`, `/api/login`, `/api/logout`, GET `/api/user`
-
-```
-Register → validasi input → hash password → buat user → generate Sanctum token → return token
-Login → cek email & password → generate token → return token
-Logout → hapus token saat ini
-User → return data user dari token
-```
-
-**Kenapa pakai Sanctum Token?**
-Sanctum membuat token unik untuk setiap login. Frontend menyimpan token ini dan mengirimkannya di setiap request:
-```
-Authorization: Bearer {token}
-```
-Tanpa token yang valid, request akan ditolak (401 Unauthorized).
-
-### OpdController, KategoriAsetController, dll (5 Reference Controllers)
-**Endpoint:** GET/POST `/api/opd`, GET/PUT/DELETE `/api/opd/{id}`
-
-Semua mengikuti pola yang sama:
-```
-GET    /api/opd          → index()   : Daftar semua data (dengan search & pagination)
-POST   /api/opd          → store()   : Buat data baru (validasi → create → return)
-GET    /api/opd/{id}     → show()    : Lihat satu data
-PUT    /api/opd/{id}     → update()  : Ubah data
-DELETE /api/opd/{id}     → destroy() : Hapus data
-```
-
-**Validasi di `store()`:**
-```php
-$validated = $request->validate([
-    'kode_opd' => 'required|string|max:255|unique:opd,kode_opd',
-    // required = wajib diisi
-    // string = harus string
-    // max:255 = maksimal 255 karakter
-    // unique:opd,kode_opd = tidak boleh sama dengan yang sudah ada di tabel opd
-]);
-```
-
-### AsetController
-**Endpoint:** GET/POST `/api/aset`, GET/PUT/DELETE `/api/aset/{id}`, GET `/api/aset/{id}/pemanfaatan`, dll
-
-**Fitur khusus:**
-- **Search:** Cari aset berdasarkan nama atau kode barang
-- **Filter:** Filter by OPD, kategori, kondisi, status
-- **Auto Riwayat:** Ketika status aset berubah, otomatis buat record riwayat
-
-```php
-// Di method update():
-$oldStatus = $aset->status;
-$aset->update($validated);
-
-if (isset($validated['status']) && $validated['status'] !== $oldStatus) {
-    $aset->riwayat()->create([
-        'aksi' => 'Pemanfaatan',
-        'deskripsi' => "Status berubah dari {$oldStatus} ke {$validated['status']}",
-        'user_id' => $request->user()->id,
-    ]);
-}
-```
-
-### PemanfaatanController
-**Endpoint:** GET/POST `/api/pemanfaatan`, GET/PUT/DELETE `/api/pemanfaatan/{id}`
-
-**Fitur khusus — Auto Status Update:**
-```
-Ketika pemanfaatan DIBUAT dengan status "Aktif":
-  → aset.status otomatis berubah ke "Dimanfaatkan"
-  → riwayat_aset otomatis tercatat
-
-Ketika pemanfaatan DIHAPUS:
-  → Cek apakah masih ada pemanfaatan aktif lain
-  → Jika tidak ada → aset.status kembali ke "Aktif"
-  → riwayat_aset otomatis tercatat
-```
-
-### GisAsetController
-**Endpoint:** GET `/api/gis/aset`, GET `/api/gis/aset/{id}`, GET `/api/gis/layer/{id}`
-
-**Mengembalikan data sebagai GeoJSON** (format standar untuk peta web):
-```json
-{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [98.6722, 3.5952]
-      },
-      "properties": {
-        "id": "uuid-aset",
-        "nama_barang": "Gedung Kantor",
-        "status": "Dimanfaatkan",
-        "layer": "Bangunan"
-      }
-    }
-  ]
-}
-```
-
-**Filter bbox:** `GET /api/gis/aset?bbox=98.5,3.5,98.8,3.7`
-→ Hanya aset dalam area kotak tersebut (west,south,east,north)
-
-### DashboardController
-**Endpoint:** GET `/api/dashboard`
-
-Menghitung statistik:
-- Total aset
-- Aset per kategori
-- Aset per status (Aktif/Idle/Dimanfaatkan)
-- Total nilai perolehan & nilai buku
-- Pemanfaatan aktif & yang segera berakhir (30 hari)
-- Pemanfaatan per jenis
-- Pihak ketiga terbanyak
-
-### DokumenPemanfaatanController & FotoAsetController
-**Endpoint:** POST `/api/dokumen-pemanfaatan`, POST `/api/foto-aset`
-
-**File Upload:**
-```php
-$file = $request->file('file');
-$path = $file->store('dokumen', 'public');
-// File disimpan di: storage/app/public/dokumen/{nama_file}
-// Perlu symlink: php artisan storage:link
-```
-
-### RiwayatAsetController
-**Endpoint:** GET/POST `/api/riwayat-aset`
-
-**Filter:** by aset_id, by aksi (Pemanfaatan/Pemeliharaan/Mutasi/Penghapusan/Revaluasi)
-
----
-
-## 4. Route (API Endpoint)
-
-Semua route didefinisikan di `routes/api.php`:
-
-```php
-// Public (tanpa login)
-Route::post('/register', ...);
-Route::post('/login', ...);
-
-// Protected (harus login pakai token)
-Route::middleware('auth:sanctum')->group(function () {
-    // Semua endpoint di sini butuh token
-    Route::apiResource('aset', AsetController::class);
-    // → GET /api/aset, POST /api/aset, GET /api/aset/{id}, 
-    //   PUT /api/aset/{id}, DELETE /api/aset/{id}
-});
-```
-
-**`apiResource()`** membuat 5 route otomatis (index, store, show, update, destroy).
-
----
-
-## 5. Database Migration
-
-14 migration files yang membuat tabel:
-
-| Migration | Tabel | Kolom Utama |
-|-----------|-------|-------------|
-| `create_opd_table` | opd | id(uuid), kode_opd, nama_opd |
-| `create_kategori_aset_table` | kategori_aset | id(uuid), kode_kib, nama_kategori |
-| `create_gis_layer_table` | gis_layer | id(uuid), nama_layer, warna |
-| `create_jenis_pemanfaatan_table` | jenis_pemanfaatan | id(uuid), kode, nama |
-| `create_pihak_ketiga_table` | pihak_ketiga | id(uuid), nama, jenis |
-| `create_aset_table` | aset | id(uuid), opd_id(FK), kategori_id(FK), kode_barang |
-| `create_gis_aset_table` | gis_aset | id(uuid), aset_id(FK), layer_id(FK), latitude, longitude |
-| `create_pemanfaatan_table` | pemanfaatan | id(uuid), aset_id(FK), jenis_id(FK), pihak_ketiga_id(FK) |
-| `create_dokumen_pemanfaatan_table` | dokumen_pemanfaatan | id(uuid), pemanfaatan_id(FK), file_path |
-| `create_foto_aset_table` | foto_aset | id(uuid), aset_id(FK), file_path |
-| `create_riwayat_aset_table` | riwayat_aset | id(uuid), aset_id(FK), aksi |
-
-**Catatan:**
-- Semua tabel pakai **UUID** sebagai primary key (bukan auto-increment integer)
-- `pemanfaatan.created_by` dan `riwayat_aset.user_id` pakai **bigint** karena relasi ke tabel `users` yang pakai ID default Laravel
-
----
-
-## 6. Cara Pakai API
-
-### Login
-```bash
-curl -X POST http://localhost:8000/api/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "admin@example.com", "password": "password"}'
-
-# Response:
-# {"user": {...}, "token": "1|abc123..."}
-```
-
-### Pakai Token
-```bash
-curl http://localhost:8000/api/aset \
-  -H "Authorization: Bearer 1|abc123..."
-```
-
-### Contoh Lain
-```bash
-# Lihat dashboard
-curl http://localhost:8000/api/dashboard -H "Authorization: Bearer TOKEN"
-
-# Buat aset baru
-curl -X POST http://localhost:8000/api/aset \
-  -H "Authorization: Bearer TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "opd_id": "uuid-opd",
-    "kategori_id": "uuid-kategori",
-    "kode_barang": "A.001",
-    "nama_barang": "Gedung Kantor",
-    "kondisi": "Baik"
-  }'
-
-# Cari aset
-curl "http://localhost:8000/api/aset?search=kantor&status=Aktif" \
-  -H "Authorization: Bearer TOKEN"
-
-# Lihat data GIS sebagai GeoJSON
-curl "http://localhost:8000/api/gis/aset?bbox=98.5,3.5,98.8,3.7" \
-  -H "Authorization: Bearer TOKEN"
-```
-
----
-
-## 7. Fix yang Dilakukan Saat Build
-
-| Fix | Kenapa |
-|-----|--------|
-| Tambah `HasApiTokens` ke User model | Sanctum butuh trait ini untuk generate token |
-| Register api routes di `bootstrap/app.php` | Laravel 13 butuh registrasi explicit untuk route api |
-
----
-
-## 8. File yang Dibuat/Diubah
-
-```
-backend/app/Models/
-├── Opd.php
-├── KategoriAset.php
-├── GisLayer.php
-├── JenisPemanfaatan.php
-├── PihakKetiga.php
-├── Aset.php
-├── GisAset.php
-├── Pemanfaatan.php
-├── DokumenPemanfaatan.php
-├── FotoAset.php
-└── RiwayatAset.php
-
-backend/app/Http/Controllers/Api/
-├── AuthController.php
-├── OpdController.php
-├── KategoriAsetController.php
-├── GisLayerController.php
-├── JenisPemanfaatanController.php
-├── PihakKetigaController.php
-├── AsetController.php
-├── GisAsetController.php
-├── PemanfaatanController.php
-├── DokumenPemanfaatanController.php
-├── FotoAsetController.php
-├── RiwayatAsetController.php
-└── DashboardController.php
-
-backend/app/Http/Resources/
-├── OpdResource.php
-├── KategoriAsetResource.php
-├── GisLayerResource.php
-├── JenisPemanfaatanResource.php
-├── PihakKetigaResource.php
-├── AsetResource.php
-├── GisAsetResource.php
-├── PemanfaatanResource.php
-├── DokumenPemanfaatanResource.php
-├── FotoAsetResource.php
-├── RiwayatAsetResource.php
-└── UserResource.php
-
-backend/routes/api.php (diubah)
-backend/app/Models/User.php (ditambah HasApiTokens)
-backend/bootstrap/app.php (ditambah api route registration)
-```
+## Tech Notes
+
+- **UUID PK** pada semua tabel domain (bukan auto-increment) — generated via `gen_random_uuid()` di PostgreSQL
+- **Cascade policy:** `cascadeOnUpdate` + `restrictOnDelete` pada FK utama, `cascadeOnDelete` pada child (foto, dokumen, riwayat, gis_aset)
+- **Pemanfaatan.updated_at = null** — hanya created_at yang dicatat
+- **Search menggunakan `ILIKE`** (case-insensitive LIKE, PostgreSQL-specific)
+- **File upload** ke `storage/app/public/` via Laravel Storage disk `public`
+- **No rate limiting** atau throttle pada API (bisa ditambahkan via middleware)
+- **Sanctum token expiry = null** (token tidak expired)

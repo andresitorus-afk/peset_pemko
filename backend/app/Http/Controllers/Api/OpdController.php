@@ -7,6 +7,7 @@ use App\Http\Resources\OpdResource;
 use App\Models\Opd;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 
 class OpdController extends Controller
@@ -60,6 +61,11 @@ class OpdController extends Controller
 
     public function destroy(Opd $opd): JsonResponse
     {
+        if ($opd->aset()->exists()) {
+            throw ValidationException::withMessages([
+                'opd' => 'OPD masih memiliki aset. Tidak bisa dihapus.',
+            ]);
+        }
         $opd->delete();
         return response()->json(['message' => 'Berhasil dihapus.']);
     }

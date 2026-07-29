@@ -7,6 +7,7 @@ use App\Http\Resources\PihakKetigaResource;
 use App\Models\PihakKetiga;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 
 class PihakKetigaController extends Controller
@@ -62,6 +63,11 @@ class PihakKetigaController extends Controller
 
     public function destroy(PihakKetiga $pihak_ketiga): JsonResponse
     {
+        if (\App\Models\Pemanfaatan::where('pihak_ketiga_id', $pihak_ketiga->id)->exists()) {
+            throw ValidationException::withMessages([
+                'pihak' => 'Pihak ketiga masih memiliki pemanfaatan. Tidak bisa dihapus.',
+            ]);
+        }
         $pihak_ketiga->delete();
         return response()->json(['message' => 'Berhasil dihapus.']);
     }

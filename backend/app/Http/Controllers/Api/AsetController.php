@@ -8,6 +8,7 @@ use App\Imports\AsetImport;
 use App\Models\Aset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 
 
@@ -89,6 +90,11 @@ class AsetController extends Controller
 
     public function destroy(Aset $aset): JsonResponse
     {
+        if ($aset->pemanfaatan()->exists()) {
+            throw ValidationException::withMessages([
+                'aset' => 'Aset masih memiliki pemanfaatan. Tidak bisa dihapus.',
+            ]);
+        }
         $aset->delete();
         return response()->json(['message' => 'Berhasil dihapus.']);
     }

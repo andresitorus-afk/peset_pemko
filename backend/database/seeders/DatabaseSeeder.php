@@ -15,16 +15,29 @@ use App\Models\PihakKetiga;
 use App\Models\RiwayatAset;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        DB::table('roles')->insert([
+            ['name' => 'Super Admin', 'guard_name' => 'web', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Admin', 'guard_name' => 'web', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Petugas', 'guard_name' => 'web', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
         $this->call(KategoriAsetSeeder::class);
 
         $admin = User::create(['name' => 'Admin Pemko', 'email' => 'admin@pemkomedan.go.id', 'password' => bcrypt('password')]);
         $petugas = User::create(['name' => 'Petugas Aset', 'email' => 'petugas@pemkomedan.go.id', 'password' => bcrypt('password')]);
+
+        $superAdminRole = DB::table('roles')->where('name', 'Super Admin')->first()->id;
+        $petugasRole = DB::table('roles')->where('name', 'Petugas')->first()->id;
+
+        DB::table('users')->where('email', 'admin@pemkomedan.go.id')->update(['role_id' => $superAdminRole]);
+        DB::table('users')->where('email', 'petugas@pemkomedan.go.id')->update(['role_id' => $petugasRole]);
 
         // OPD
         $opd1 = Opd::create(['kode_opd' => 'OPD.001', 'nama_opd' => 'Dinas Pendidikan', 'kepala_opd' => 'Dr. H. Ahmad Siregar, M.Pd', 'nip_kepala' => '196805151993011001']);

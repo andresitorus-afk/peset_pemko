@@ -7,6 +7,7 @@ use App\Http\Resources\GisLayerResource;
 use App\Models\GisLayer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 
 class GisLayerController extends Controller
@@ -56,6 +57,11 @@ class GisLayerController extends Controller
 
     public function destroy(GisLayer $gis_layer): JsonResponse
     {
+        if ($gis_layer->gisAset()->exists()) {
+            throw ValidationException::withMessages([
+                'layer' => 'Layer masih memiliki GIS aset. Tidak bisa dihapus.',
+            ]);
+        }
         $gis_layer->delete();
         return response()->json(['message' => 'Berhasil dihapus.']);
     }
