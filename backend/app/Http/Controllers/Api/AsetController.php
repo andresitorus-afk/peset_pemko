@@ -17,7 +17,7 @@ class AsetController extends Controller
     public function index(Request $request)
     {
         $aset = Aset::query()
-            ->with(['opd', 'kategori'])
+            ->with(['opd', 'kategori', 'gisAset.layer'])
             ->search($request->search)
             ->filter($request->only(['opd_id', 'kategori_id', 'kondisi', 'status']))
             ->orderBy('kode_barang')
@@ -46,13 +46,15 @@ class AsetController extends Controller
 
         $aset = Aset::create($validated);
 
+        $this->handleGis($request, $aset);
+
         return (new AsetResource($aset->load(['opd', 'kategori'])))
             ->response()->setStatusCode(201);
     }
 
     public function show(Aset $aset): AsetResource
     {
-        $aset->load(['opd', 'kategori', 'gisAset.layer', 'pemanfaatan.jenis', 'pemanfaatan.pihakKetiga']);
+        $aset->load(['opd', 'kategori', 'foto', 'gisAset.layer', 'pemanfaatan.jenis', 'pemanfaatan.pihakKetiga']);
         return new AsetResource($aset);
     }
 
@@ -85,7 +87,28 @@ class AsetController extends Controller
             ]);
         }
 
+        $this->handleGis($request, $aset);
+
         return new AsetResource($aset->fresh(['opd', 'kategori']));
+    }
+
+    protected function handleGis(Request $request, Aset $aset): void
+    {
+        $gis = $request->input('gis');
+        if (!$gis || !isset($gis['latitude'], $gis['longitude'], $gis['layer_id'])) return;
+
+        $aset->gisAset()->updateOrCreate(
+            ['aset_id' => $aset->id],
+            [
+                'latitude' => $gis['latitude'],
+                'longitude' => $gis['longitude'],
+                'layer_id' => $gis['layer_id'],
+                'tipe_geometri' => $gis['tipe_geometri'] ?? 'Point',
+                'polygon_geojson' => $gis['polygon_geojson'] ?? null,
+                'luas_gis' => $gis['luas_gis'] ?? null,
+                'sumber_koordinat' => 'GoogleMaps',
+            ]
+        );
     }
 
     public function destroy(Aset $aset): JsonResponse

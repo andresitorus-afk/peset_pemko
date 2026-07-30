@@ -14,6 +14,7 @@ class AsetResource extends JsonResource
             'opd' => new OpdResource($this->whenLoaded('opd')),
             'kategori' => new KategoriAsetResource($this->whenLoaded('kategori')),
             'gis_aset' => new GisAsetResource($this->whenLoaded('gisAset')),
+            'foto' => $this->whenLoaded('foto', fn() => $this->foto->toArray()),
             'pemanfaatan_count' => $this->whenCounted('pemanfaatan'),
             'foto_count' => $this->whenCounted('foto'),
             'created_at' => $this->created_at, 'updated_at' => $this->updated_at,

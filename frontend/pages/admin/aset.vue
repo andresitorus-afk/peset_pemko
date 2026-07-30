@@ -46,8 +46,8 @@
           <h4 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Detail Aset</h4>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <UiInput v-model="form.tahun_perolehan" label="Tahun Perolehan" type="number" placeholder="2024" />
-            <UiInput v-model="form.nilai_perolehan" label="Nilai Perolehan" type="number" placeholder="0" />
-            <UiInput v-model="form.nilai_buku" label="Nilai Buku" type="number" placeholder="0" />
+            <UiInput :model-value="formatRupiah(form.nilai_perolehan)" @update:model-value="form.nilai_perolehan = unformatNumber($event)" label="Nilai Perolehan (Rp)" placeholder="0" />
+            <UiInput :model-value="formatRupiah(form.nilai_buku)" @update:model-value="form.nilai_buku = unformatNumber($event)" label="Nilai Buku (Rp)" placeholder="0" />
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
             <UiInput v-model="form.luas" label="Luas (m²)" type="number" placeholder="0" />
@@ -58,26 +58,78 @@
 
         <div>
           <h4 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Lokasi & Keterangan</h4>
-          <UiInput v-model="form.alamat" label="Alamat" placeholder="Alamat lokasi aset..." />
+          <div class="relative">
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5">Cari Lokasi</label>
+            <input v-model="gisSearchQuery" @input="onGisSearch" type="text" placeholder="Ketik alamat untuk cari di peta..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-teal-500" />
+            <ul v-if="gisSearchResults.length" class="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              <li v-for="(r, i) in gisSearchResults" :key="i" @click="selectGisResult(r)" class="px-3 py-2 text-sm text-slate-700 hover:bg-teal-50 cursor-pointer border-b border-slate-100 last:border-0">{{ r.display_name }}</li>
+            </ul>
+          </div>
+          <UiInput v-model="form.alamat" label="Alamat" placeholder="Alamat lokasi aset..." class="mt-4" />
+          <!-- Map -->
+          <div v-if="form.latitude" ref="mapContainer" class="w-full h-64 sm:h-80 rounded-xl border border-slate-200 overflow-hidden z-0 mt-4"></div>
+          <div v-if="gisBuildingSearching" class="mt-2 text-xs text-teal-600 flex items-center gap-1.5">
+            <svg class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+            Mencari polygon gedung...
+          </div>
+          <div class="grid grid-cols-2 gap-3 mt-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1.5">Latitude</label>
+              <input v-model="form.latitude" type="text" readonly class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1.5">Longitude</label>
+              <input v-model="form.longitude" type="text" readonly class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <UiSelect v-model="form.gis_layer_id" label="Layer GIS" :options="gisLayerOptions" placeholder="Pilih layer" />
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1.5">Luas Polygon (m²)</label>
+              <input v-model="form.luas_gis" type="text" readonly class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600">
+            </div>
+          </div>
+          <p class="text-xs text-slate-400 mt-1.5">Gambar polygon di peta dengan tool <strong>Draw Polygon</strong> (icon segi lima). Edit/hapus setelah digambar.</p>
           <UiInput v-model="form.keterangan" label="Keterangan" placeholder="Catatan tambahan..." class="mt-4" />
         </div>
 
         <div v-if="editing">
           <h4 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Foto Aset</h4>
-          <div v-if="fotos.length" class="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-4">
-            <div v-for="(foto, i) in fotos" :key="foto?.id ?? i" class="relative group">
-              <img :src="fotoUrl(foto.file)" class="w-full h-24 object-cover rounded-lg border border-slate-200" />
-              <button @click="deleteFoto(foto)" type="button" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">&times;</button>
-              <p v-if="foto.caption" class="text-xs text-slate-500 mt-1 truncate">{{ foto.caption }}</p>
+
+          <!-- Gallery -->
+          <div v-if="fotos.length" class="relative">
+            <div class="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
+              <div v-for="(foto, i) in fotos" :key="foto?.id ?? i" class="snap-start shrink-0 relative group">
+                <img :src="fotoUrl(foto.file_path || foto.file)" class="w-48 sm:w-56 h-32 sm:h-36 object-cover rounded-xl border border-slate-200 shadow-sm" />
+                <button @click="deleteFoto(foto)" type="button" class="absolute top-2 right-2 bg-red-500/90 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600">&times;</button>
+                <p v-if="foto.caption" class="text-xs text-slate-500 mt-1.5 truncate w-48 sm:w-56">{{ foto.caption }}</p>
+              </div>
+            </div>
+            <div v-if="fotos.length > 1" class="flex items-center justify-center gap-1.5 mt-3">
+              <span v-for="(_, i) in fotos" :key="i" class="w-2 h-2 rounded-full transition-colors" :class="i === fotoSlide ? 'bg-teal-600' : 'bg-slate-300'" />
             </div>
           </div>
           <p v-else class="text-sm text-slate-400 mb-3">Belum ada foto</p>
-          <div class="flex items-center gap-3">
-            <input type="file" accept="image/*" @change="handleFotoSelect" class="text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100" />
-            <input v-model="fotoCaption" placeholder="Keterangan foto" class="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-teal-500" />
-            <UiButton variant="primary" type="button" @click="uploadFoto" :disabled="!fotoFile || fotoUploading" size="sm">
-              {{ fotoUploading ? 'Mengunggah...' : 'Upload' }}
-            </UiButton>
+
+          <!-- Upload -->
+          <div class="flex flex-col sm:flex-row gap-3 mt-3">
+            <div class="flex-1 relative flex items-center gap-3 p-3 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50/50">
+              <svg class="w-8 h-8 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-slate-600">Klik untuk pilih {{ fotoFiles.length > 0 ? 'lagi' : 'foto' }}</p>
+                <p v-if="fotoFiles.length" class="text-xs text-teal-600 mt-0.5">{{ fotoFiles.length }} file dipilih</p>
+                <p v-else class="text-xs text-slate-400">Bisa pilih beberapa foto sekaligus</p>
+                <input type="file" accept="image/*" multiple @change="handleFotoSelect" class="absolute inset-0 opacity-0 cursor-pointer" />
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <input v-model="fotoCaption" placeholder="Keterangan foto" class="flex-1 sm:w-40 px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-teal-500" />
+              <UiButton variant="primary" type="button" @click="uploadFoto" :disabled="!fotoFiles.length || fotoUploading" size="sm">
+                {{ fotoUploading ? 'Mengunggah...' : 'Upload' }}
+              </UiButton>
+            </div>
           </div>
         </div>
       </div>
@@ -98,6 +150,7 @@ definePageMeta({ layout: 'admin' })
 
 const api = useApi()
 const toast = useToast()
+import { area } from '@turf/turf'
 
 const items = ref<any[]>([])
 const page = ref(1)
@@ -114,9 +167,37 @@ const deletingItem = ref<any | null>(null)
 const opdList = ref<any[]>([])
 const kategoriList = ref<any[]>([])
 const fotos = ref<any[]>([])
-const fotoFile = ref<File | null>(null)
+const fotoFiles = ref<File[]>([])
 const fotoCaption = ref('')
 const fotoUploading = ref(false)
+const fotoSlide = ref(0)
+
+// GIS
+const gisLayerList = ref<any[]>([])
+const gisLayerOptions = computed(() => gisLayerList.value.filter((l: any) => l?.id).map((l: any) => ({ value: l.id, label: l.nama_layer })))
+const gisSearchResults = ref<any[]>([])
+const gisSearching = ref(false)
+const gisSearchQuery = ref('')
+let gisSearchTimer: ReturnType<typeof setTimeout>
+const mapContainer = ref<HTMLDivElement | null>(null)
+let mapInstance: any = null
+let mapMarker: any = null
+let drawnLayer: any = null
+let drawnItems: any = null
+const gisReady = ref(false)
+const gisBuildingSearching = ref(false)
+const gisDrawActive = ref(false)
+
+function formatRupiah(val: string | number | undefined) {
+  if (val === undefined || val === null || val === '') return ''
+  const s = String(val).replace(/\D/g, '')
+  if (!s) return ''
+  return new Intl.NumberFormat('id-ID').format(Number(s))
+}
+
+function unformatNumber(val: string) {
+  return val.replace(/\D/g, '')
+}
 
 const form = ref({
   kode_barang: '',
@@ -132,6 +213,11 @@ const form = ref({
   status: '',
   alamat: '',
   keterangan: '',
+  latitude: '',
+  longitude: '',
+  gis_layer_id: '',
+  polygon_geojson: null as any,
+  luas_gis: '',
 })
 
 const kondisiOptions = [
@@ -157,8 +243,151 @@ const columns = [
   { key: 'status', label: 'Status' },
 ]
 
-function fotoUrl(file: string) {
-  return `${api.baseURL}/storage/${file}`
+function fotoUrl(path: string) {
+  if (!path) return ''
+  return `${api.baseURL}/storage/${path}`
+}
+
+function onGisSearch() {
+  clearTimeout(gisSearchTimer)
+  gisSearchTimer = setTimeout(async () => {
+    const q = gisSearchQuery.value.trim()
+    if (q.length < 3) { gisSearchResults.value = []; return }
+    gisSearching.value = true
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5&countrycodes=id`, { headers: { 'User-Agent': 'PesetPemko/1.0' } })
+      gisSearchResults.value = await res.json()
+    } catch { gisSearchResults.value = [] } finally { gisSearching.value = false }
+  }, 400)
+}
+
+function selectGisResult(r: any) {
+  gisSearchQuery.value = r.display_name
+  gisSearchResults.value = []
+  form.value.alamat = r.display_name
+  form.value.latitude = r.lat
+  form.value.longitude = r.lon
+  initMap()
+  detectBuilding(r.lat, r.lon)
+}
+
+async function detectBuilding(lat: string, lng: string) {
+  gisBuildingSearching.value = true
+  try {
+    const query = `[out:json];(way["building"](around:50,${lat},${lng});relation["building"](around:50,${lat},${lng}););out body geom;`
+    const res = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`, { headers: { 'User-Agent': 'PesetPemko/1.0' } })
+    const data = await res.json()
+    if (data.elements?.length) {
+      const el = data.elements[0]
+      const coords = el.geometry?.map((p: any) => [p.lon, p.lat])
+      if (coords?.length >= 3) {
+        coords.push(coords[0])
+        const geo = { type: 'Polygon', coordinates: [coords] }
+        form.value.polygon_geojson = geo
+        form.value.luas_gis = ''
+        drawPolygonOnMap(geo)
+        return
+      }
+    }
+  } catch {}
+  gisBuildingSearching.value = false
+}
+
+function initMap(retries = 0) {
+  destroyMap()
+  if (!mapContainer.value || !form.value.latitude || !form.value.longitude) return
+  const L = (window as any).L
+  if (!L) { if (retries < 20) setTimeout(() => initMap(retries + 1), 250); return }
+  const lat = parseFloat(form.value.latitude)
+  const lng = parseFloat(form.value.longitude)
+  if (isNaN(lat) || isNaN(lng)) return
+
+  mapInstance = L.map(mapContainer.value, { zoomControl: true }).setView([lat, lng], 18)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(mapInstance)
+
+  mapMarker = L.marker([lat, lng]).addTo(mapInstance).bindPopup(form.value.nama_barang || 'Lokasi')
+
+  if (form.value.polygon_geojson) drawPolygonOnMap(form.value.polygon_geojson)
+
+  drawnItems = new L.FeatureGroup()
+  mapInstance.addLayer(drawnItems)
+
+  const drawControl = new L.Control.Draw({
+    edit: { featureGroup: drawnItems },
+    draw: { polygon: { allowIntersection: false, showArea: true }, polyline: false, circle: false, circlemarker: false, rectangle: false, marker: false },
+  })
+  mapInstance.addControl(drawControl)
+
+  if (form.value.polygon_geojson) {
+    const poly = L.geoJSON(form.value.polygon_geojson)
+    poly.eachLayer((l: any) => drawnItems.addLayer(l))
+    drawnLayer = poly
+  }
+
+  mapInstance.on(L.Draw.Event.CREATED, (e: any) => {
+    drawnItems.clearLayers()
+    drawnItems.addLayer(e.layer)
+    drawnLayer = e.layer
+    saveDrawnPolygon(e.layer)
+  })
+
+  mapInstance.on(L.Draw.Event.EDITED, (e: any) => {
+    e.layers.eachLayer((l: any) => { drawnLayer = l; saveDrawnPolygon(l) })
+  })
+
+  mapInstance.on(L.Draw.Event.DELETED, () => {
+    drawnLayer = null
+    form.value.polygon_geojson = null
+    form.value.luas_gis = ''
+  })
+
+  setTimeout(() => mapInstance?.invalidateSize(), 400)
+  gisReady.value = true
+}
+
+function drawPolygonOnMap(geo: any) {
+  if (!mapInstance || !drawnItems) return
+  drawnItems.clearLayers()
+  const L = (window as any).L
+  const poly = L.geoJSON(geo)
+  poly.eachLayer((l: any) => {
+    drawnItems.addLayer(l)
+    mapInstance.fitBounds(l.getBounds())
+  })
+  drawnLayer = poly
+  saveDrawnPolygon(poly)
+  gisBuildingSearching.value = false
+}
+
+function saveDrawnPolygon(layer: any) {
+  if (!layer) return
+  try {
+    const geo = layer.toGeoJSON?.() || layer
+    if (geo.type === 'Feature') {
+      form.value.polygon_geojson = geo.geometry
+    } else if (geo.type === 'FeatureCollection') {
+      form.value.polygon_geojson = geo.features[0]?.geometry || null
+    } else {
+      form.value.polygon_geojson = geo
+    }
+    if (form.value.polygon_geojson) {
+      form.value.luas_gis = Math.round(area(form.value.polygon_geojson) * 100) / 100
+    }
+  } catch {}
+}
+
+function destroyMap() {
+  if (mapInstance) { mapInstance.remove(); mapInstance = null }
+  mapMarker = null; drawnLayer = null; drawnItems = null; gisReady.value = false
+}
+
+function closeModal() {
+  modal.value = false
+  editing.value = null
+  fotos.value = []
+  fotoFiles.value = []
+  fotoCaption.value = ''
+  destroyMap()
 }
 
 async function fetchData() {
@@ -180,12 +409,15 @@ async function fetchData() {
 
 async function fetchOptions() {
   try {
-    const [opdRes, katRes] = await Promise.all([
+    const [opdRes, katRes, gisLayerRes] = await Promise.all([
       api.get('/opd'),
       api.get('/kategori-aset'),
+      api.get('/gis-layer'),
     ])
     opdList.value = Array.isArray(opdRes) ? opdRes : opdRes.data || []
     kategoriList.value = Array.isArray(katRes) ? katRes : katRes.data || []
+    const layers = Array.isArray(gisLayerRes) ? gisLayerRes : gisLayerRes.data || []
+    gisLayerList.value = layers.filter((l: any) => l?.id)
   } catch (e: any) {
     toast.show('Gagal memuat data referensi', 'error')
   }
@@ -193,14 +425,17 @@ async function fetchOptions() {
 
 function openCreate() {
   editing.value = null
-  form.value = { kode_barang: '', register: '', nama_barang: '', opd_id: '', kategori_id: '', tahun_perolehan: '', nilai_perolehan: '', nilai_buku: '', luas: '', kondisi: '', status: '', alamat: '', keterangan: '' }
+  form.value = { kode_barang: '', register: '', nama_barang: '', opd_id: '', kategori_id: '', tahun_perolehan: '', nilai_perolehan: '', nilai_buku: '', luas: '', kondisi: '', status: '', alamat: '', keterangan: '', latitude: '', longitude: '', gis_layer_id: '', polygon_geojson: null, luas_gis: '' }
   fotos.value = []
-  fotoFile.value = null
+  fotoFiles.value = []
   fotoCaption.value = ''
+  gisSearchQuery.value = ''
+  gisSearchResults.value = []
+  destroyMap()
   modal.value = true
 }
 
-function openEdit(item: any) {
+async function openEdit(item: any) {
   editing.value = item
   form.value = {
     kode_barang: item.kode_barang || '',
@@ -216,29 +451,60 @@ function openEdit(item: any) {
     status: item.status || '',
     alamat: item.alamat || '',
     keterangan: item.keterangan || '',
+    latitude: item.gis_aset?.latitude ?? '',
+    longitude: item.gis_aset?.longitude ?? '',
+    gis_layer_id: item.gis_aset?.layer_id ?? '',
+    polygon_geojson: item.gis_aset?.polygon_geojson ?? null,
+    luas_gis: item.gis_aset?.luas_gis ?? '',
   }
+  if (!form.value.kategori_id && item.kategori?.kode_kib) {
+    const kibLayer: Record<string, string> = { 'KIB A': 'Tanah', 'KIB C': 'Bangunan' }
+    const layerName = kibLayer[item.kategori.kode_kib]
+    if (layerName) {
+      const found = gisLayerList.value.find((l: any) => l.nama_layer === layerName)
+      if (found) form.value.gis_layer_id = found.id
+    }
+  }
+  gisSearchQuery.value = ''
+  gisSearchResults.value = []
+  fotoFiles.value = []
+  fotoCaption.value = ''
   fotos.value = item.foto || []
-  fotoFile.value = null
-  fotoCaption.value = ''
+  if (Array.isArray(fotos.value) && fotos.value.length) {
+    fotos.value = fotos.value.map((f: any) => f.data || f)
+  } else {
+    try {
+      const detail: any = await api.get(`/aset/${item.id}`)
+      const raw = detail.foto || detail.data?.foto || []
+      fotos.value = Array.isArray(raw) ? raw : raw.data || []
+    } catch {}
+  }
   modal.value = true
-}
-
-function closeModal() {
-  modal.value = false
-  editing.value = null
-  fotos.value = []
-  fotoFile.value = null
-  fotoCaption.value = ''
+  await nextTick()
+  initMap()
 }
 
 async function save() {
   saving.value = true
+  const payload = { ...form.value }
+  if (payload.latitude && payload.longitude && payload.gis_layer_id) {
+    payload.gis = {
+      latitude: payload.latitude,
+      longitude: payload.longitude,
+      polygon_geojson: payload.polygon_geojson,
+      luas_gis: payload.luas_gis,
+      layer_id: payload.gis_layer_id,
+      tipe_geometri: payload.polygon_geojson ? 'Polygon' : 'Point',
+    }
+  }
+  delete payload.latitude; delete payload.longitude; delete payload.gis_layer_id
+  delete payload.polygon_geojson; delete payload.luas_gis
   try {
     if (editing.value) {
-      await api.put(`/aset/${editing.value.id}`, form.value)
+      await api.put(`/aset/${editing.value.id}`, payload)
       toast.show('Aset berhasil diupdate', 'success')
     } else {
-      await api.post('/aset', form.value)
+      await api.post('/aset', payload)
       toast.show('Aset berhasil ditambahkan', 'success')
     }
     closeModal()
@@ -252,28 +518,34 @@ async function save() {
 
 function handleFotoSelect(e: Event) {
   const target = e.target as HTMLInputElement
-  fotoFile.value = target.files?.[0] || null
+  if (!target.files?.length) return
+  fotoFiles.value = [...fotoFiles.value, ...Array.from(target.files)]
+  target.value = ''
 }
 
 async function uploadFoto() {
-  if (!fotoFile.value || !editing.value) return
+  if (!fotoFiles.value.length || !editing.value) return
   fotoUploading.value = true
-  try {
-    const fd = new FormData()
-    fd.append('aset_id', editing.value.id)
-    fd.append('file', fotoFile.value)
-    fd.append('caption', fotoCaption.value)
-    fd.append('tipe', 'Lainnya')
-    const result = await api.upload('/foto-aset', fd)
-    fotos.value.push(result.data || result)
-    toast.show('Foto berhasil diupload', 'success')
-    fotoFile.value = null
-    fotoCaption.value = ''
-  } catch (e: any) {
-    toast.show('Gagal upload foto: ' + e.message, 'error')
-  } finally {
-    fotoUploading.value = false
+  let ok = 0, fail = 0
+  for (const file of fotoFiles.value) {
+    try {
+      const fd = new FormData()
+      fd.append('aset_id', editing.value.id)
+      fd.append('file', file)
+      fd.append('caption', fotoCaption.value)
+      fd.append('tipe', 'Lainnya')
+      const result = await api.upload('/foto-aset', fd)
+      fotos.value.push(result.data || result)
+      ok++
+    } catch {
+      fail++
+    }
   }
+  if (ok) toast.show(`${ok} foto berhasil diupload${fail ? `, ${fail} gagal` : ''}`, 'success')
+  if (fail && !ok) toast.show('Gagal upload foto', 'error')
+  fotoFiles.value = []
+  fotoCaption.value = ''
+  fotoUploading.value = false
 }
 
 async function deleteFoto(foto: any) {

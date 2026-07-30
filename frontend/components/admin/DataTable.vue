@@ -64,7 +64,7 @@
       </table>
     </div>
 
-    <div v-if="totalPages > 1" class="flex items-center justify-between pt-4 border-t border-slate-200 mt-4">
+    <div v-if="totalPages> 1" class="flex items-center justify-between pt-4 border-t border-slate-200 mt-4">
       <p class="text-sm text-slate-500">Halaman {{ page }} dari {{ totalPages }}</p>
       <div class="flex gap-1">
         <button :disabled="page <= 1" @click="$emit('page-change', page - 1)" type="button" class="px-3 py-1.5 rounded text-sm border border-slate-300 hover:bg-slate-50 disabled:opacity-50">

@@ -244,12 +244,19 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
 
 definePageMeta({ layout: false })
 
+const config = useRuntimeConfig()
+const route = useRoute()
 const router = useRouter()
+
+if (route.params.hash !== config.public.loginHash) {
+  router.replace('/')
+}
+
 const { login, fetchUser } = useAuth()
 
 const email = ref('')

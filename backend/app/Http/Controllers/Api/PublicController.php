@@ -12,7 +12,7 @@ class PublicController extends Controller
     public function aset()
     {
         $aset = Aset::query()
-            ->with(['opd', 'kategori'])
+            ->with(['opd', 'kategori', 'foto'])
             ->when(request('search'), fn ($q, $s) => $q->where(function ($q) use ($s) {
                 $q->where('nama_barang', 'ilike', "%{$s}%")
                   ->orWhere('kode_barang', 'ilike', "%{$s}%")

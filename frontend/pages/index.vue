@@ -1,37 +1,44 @@
 <template>
   <div class="min-h-screen bg-white">
-    <!-- Header -->
-    <header class="sticky top-0 z-50 bg-white border-b border-slate-200">
+    <!-- Navbar -->
+    <header class="sticky top-0 z-50 bg-gradient-to-r from-slate-900 via-slate-800 to-teal-900 border-b border-teal-700/30 shadow-lg shadow-black/20">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16 sm:h-20">
           <div class="flex items-center gap-3">
-            <img src="/logo-pemko.jpg" alt="Pemko Medan" class="h-9 sm:h-10">
+            <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/15 flex items-center justify-center overflow-hidden ring-1 ring-white/20 shadow-inner">
+              <img src="/logo-pemko.jpg" alt="Pemko Medan" class="h-7 sm:h-8">
+            </div>
             <div>
-              <p class="text-base sm:text-lg font-bold text-slate-900 leading-tight">PESET</p>
-              <p class="text-[11px] sm:text-xs text-slate-500 leading-tight">Pemanfaatan Aset Daerah</p>
+              <p class="text-base sm:text-lg font-bold text-white leading-tight">PESET</p>
+              <p class="text-[11px] sm:text-xs text-teal-200 leading-tight">Pemanfaatan Aset Daerah</p>
             </div>
           </div>
-          <nav class="hidden sm:flex items-center gap-6">
-            <a href="#" class="text-sm font-semibold text-teal-700">Beranda</a>
-            <a href="#tentang" class="text-sm font-medium text-slate-600 hover:text-slate-900">Tentang</a>
-            <a href="#kontak" class="text-sm font-medium text-slate-600 hover:text-slate-900">Kontak</a>
+          <nav class="hidden sm:flex items-center gap-1">
+            <a href="#" class="px-4 py-2 text-sm font-semibold text-white rounded-lg bg-teal-700/60 shadow-sm">Beranda</a>
+            <a href="#tentang" class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white rounded-lg hover:bg-white/10 transition-all">Tentang</a>
+            <a href="#kontak" class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white rounded-lg hover:bg-white/10 transition-all">Kontak</a>
           </nav>
-          <NuxtLink to="/auth/login" class="text-sm font-medium text-slate-500 hover:text-slate-700 border border-slate-300 hover:border-slate-400 px-4 py-2 rounded-lg transition-colors">
-            Login Admin
-          </NuxtLink>
+
         </div>
       </div>
     </header>
 
     <!-- Hero -->
-    <section class="bg-gradient-to-br from-slate-900 via-slate-800 to-teal-900 text-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-28">
+    <section class="relative overflow-hidden text-white h-[60vh] sm:h-[70vh]">
+      <div class="absolute inset-0 bg-slate-900">
+        <img v-for="(bg, i) in heroBg" :key="i"
+          :src="bg"
+          class="absolute inset-0 w-full h-full object-contain transition-opacity duration-1000"
+          :class="slideIndex === i ? 'opacity-100' : 'opacity-0'" />
+        <div class="absolute inset-0 bg-gradient-to-b from-slate-900/60 to-slate-900/20" />
+      </div>
+      <div class="relative flex flex-col h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-24">
         <div class="max-w-3xl">
-          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight [text-shadow:0_2px_20px_rgba(0,0,0,0.4)]">
             Pemanfaatan Aset<br>
             <span class="text-teal-300">Daerah Kota Medan</span>
           </h1>
-          <p class="text-base sm:text-lg text-slate-300 mt-4 sm:mt-6 leading-relaxed max-w-2xl">
+          <p class="text-base sm:text-lg text-slate-200 mt-4 sm:mt-6 leading-relaxed max-w-2xl [text-shadow:0_1px_8px_rgba(0,0,0,0.3)]">
             Temukan dan manfaatkan aset daerah yang tersedia untuk kerjasama, sewa, 
             dan pemanfaatan lainnya. Proses transparan dan terpercaya.
           </p>
@@ -49,8 +56,13 @@
           </div>
         </div>
       </div>
+      <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
+        <span v-for="(_, i) in heroBg" :key="i" @click="slideIndex = i"
+          class="w-2 h-2 rounded-full transition-all cursor-pointer"
+          :class="slideIndex === i ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/70'" />
+      </div>
     </section>
-
+    
     <!-- Filter Kategori -->
     <section class="bg-white border-b border-slate-200 sticky top-16 sm:top-20 z-40">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
@@ -72,12 +84,17 @@
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <!-- Loading -->
       <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        <div v-for="i in 6" :key="i" class="rounded-xl border border-slate-200 overflow-hidden animate-pulse">
-          <div class="h-48 bg-slate-200" />
-          <div class="p-4 sm:p-5 space-y-3">
+        <div v-for="i in 6" :key="i" class="rounded-2xl border border-slate-200 bg-white overflow-hidden animate-pulse shadow-sm">
+          <div class="h-48 sm:h-52 bg-slate-200" />
+          <div class="p-5 space-y-3">
+            <div class="h-3 bg-slate-200 rounded w-1/3" />
             <div class="h-5 bg-slate-200 rounded w-3/4" />
-            <div class="h-4 bg-slate-200 rounded w-1/2" />
             <div class="h-4 bg-slate-200 rounded w-2/3" />
+            <div class="h-px bg-slate-100 my-2" />
+            <div class="flex justify-between">
+              <div class="h-4 bg-slate-200 rounded w-1/3" />
+              <div class="h-4 bg-slate-200 rounded w-1/4" />
+            </div>
           </div>
         </div>
       </div>
@@ -92,58 +109,95 @@
       </div>
 
       <!-- Grid -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-7">
         <div v-for="item in items" :key="item.id"
-          class="group rounded-xl border border-slate-200 bg-white overflow-hidden hover:shadow-lg hover:border-teal-200 transition-all duration-200 cursor-pointer"
+          class="group relative rounded-2xl border border-slate-200 bg-white overflow-hidden hover:shadow-xl hover:shadow-slate-200/60 hover:-translate-y-0.5 hover:border-teal-300 transition-all duration-300 cursor-pointer"
           @click="openDetail(item)">
+          <!-- KIB color accent bar -->
+          <div class="absolute top-0 left-0 right-0 h-1 z-10" :style="{ backgroundColor: kibColor(item.kategori?.kode_kib) }" />
           <!-- Foto -->
           <div class="relative h-48 sm:h-52 bg-slate-100 overflow-hidden">
             <div v-if="item.foto && item.foto.length" class="w-full h-full">
-              <img :src="fotoUrl(item.foto[0].file_path)" :alt="item.nama_barang" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+              <img :src="fotoUrl(item.foto[0].file_path)" :alt="item.nama_barang" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
             </div>
             <div v-else class="flex items-center justify-center h-full">
-              <svg class="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-              </svg>
+              <div class="flex flex-col items-center gap-2">
+                <svg class="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span class="text-xs text-slate-400">Tidak ada foto</span>
+              </div>
             </div>
+            <!-- Gradient overlay on image bottom -->
+            <div v-if="item.foto && item.foto.length" class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/30 to-transparent" />
+            <!-- Status badge -->
             <div class="absolute top-3 right-3">
-              <span :class="statusClass(item.status)" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
+              <span :class="statusClass(item.status)" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow-lg backdrop-blur-sm">
                 {{ statusLabel(item.status) }}
+              </span>
+            </div>
+            <!-- KIB badge -->
+            <div v-if="item.kategori?.kode_kib" class="absolute top-3 left-3">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold text-white shadow-lg backdrop-blur-sm" :style="{ backgroundColor: kibColor(item.kategori.kode_kib) }">
+                {{ item.kategori.kode_kib }}
               </span>
             </div>
           </div>
           <!-- Info -->
-          <div class="p-4 sm:p-5">
-            <p class="text-xs font-medium text-teal-600 uppercase tracking-wider">{{ item.kategori?.nama_kategori || '—' }}</p>
-            <h3 class="text-base sm:text-lg font-bold text-slate-900 mt-1 leading-snug">{{ item.nama_barang }}</h3>
-            <div class="flex items-center gap-1.5 mt-2 text-sm text-slate-500">
-              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="p-5">
+            <p class="text-[11px] font-semibold text-teal-600 uppercase tracking-widest">{{ item.kategori?.nama_kategori || '—' }}</p>
+            <h3 class="text-base sm:text-lg font-bold text-slate-900 mt-1.5 leading-snug group-hover:text-teal-700 transition-colors">{{ item.nama_barang }}</h3>
+            <div class="flex items-center gap-1.5 mt-2.5 text-sm text-slate-500">
+              <svg class="w-4 h-4 flex-shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
               </svg>
               <span class="truncate">{{ item.alamat || '—' }}</span>
             </div>
-            <div class="flex items-center justify-between mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-slate-100">
-              <p class="text-sm text-slate-500">
-                <span class="font-medium text-slate-700">{{ item.opd?.nama_opd || '—' }}</span>
-              </p>
-              <span class="text-sm font-semibold text-teal-700 group-hover:underline">Lihat Detail</span>
+            <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+              <div class="flex items-center gap-2 text-sm text-slate-500">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                <span class="font-medium text-slate-600 truncate">{{ item.opd?.nama_opd || '—' }}</span>
+              </div>
+              <span class="inline-flex items-center gap-1 text-sm font-semibold text-teal-700 group-hover:text-teal-600 transition-colors">
+                Detail
+                <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </span>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Pagination -->
-      <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 mt-8 sm:mt-12">
+      <div v-if="totalPages > 1" class="flex items-center justify-center gap-3 mt-10 sm:mt-14">
         <button :disabled="page <= 1" @click="page--; fetchData()"
-          class="px-4 py-2 rounded-lg text-sm font-medium border border-slate-300 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+          class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
           Sebelumnya
         </button>
-        <span class="text-sm text-slate-500 px-3">
-          Halaman {{ page }} dari {{ totalPages }}
-        </span>
+        <div class="flex items-center gap-2">
+          <template v-for="p in Math.min(totalPages, 5)" :key="p">
+            <button v-if="p === page || p === 1 || p === totalPages || Math.abs(p - page) <= 1"
+              @click="page = p; fetchData()"
+              :class="p === page ? 'bg-teal-700 text-white shadow-md shadow-teal-200' : 'bg-white text-slate-600 border border-slate-300 hover:bg-slate-50'"
+              class="w-10 h-10 rounded-xl text-sm font-semibold transition-all">
+              {{ p }}
+            </button>
+          </template>
+          <span v-if="totalPages > 5 && page < totalPages - 2" class="text-slate-400 px-1">...</span>
+        </div>
+        <span class="text-sm text-slate-400 px-1 hidden sm:block">dari {{ totalPages }}</span>
         <button :disabled="page >= totalPages" @click="page++; fetchData()"
-          class="px-4 py-2 rounded-lg text-sm font-medium border border-slate-300 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+          class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm">
           Berikutnya
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
         </button>
       </div>
     </section>
@@ -221,7 +275,7 @@
             <div class="mt-4 space-y-3 text-sm">
               <a href="https://pemkomedan.go.id" class="block text-slate-300 hover:text-white transition-colors">pemkomedan.go.id</a>
               <a href="https://bpkad.pemkomedan.go.id" class="block text-slate-300 hover:text-white transition-colors">bpkad.pemkomedan.go.id</a>
-              <NuxtLink to="/auth/login" class="block text-slate-300 hover:text-white transition-colors">Admin Panel</NuxtLink>
+              <NuxtLink :to="loginPath" class="block text-slate-300 hover:text-white transition-colors">Admin Panel</NuxtLink>
             </div>
           </div>
         </div>
@@ -241,9 +295,26 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
-        <!-- Foto -->
-        <div v-if="detailFoto && detailFoto.length" class="h-56 sm:h-72 bg-slate-100">
-          <img :src="fotoUrl(detailFoto[0].file_path)" :alt="detailItem.nama_barang" class="w-full h-full object-cover">
+        <!-- Foto slider -->
+        <div v-if="detailFoto && detailFoto.length" class="relative h-56 sm:h-72 bg-slate-100 group">
+          <img :src="fotoUrl(detailFoto[fotoIdx].file_path)" :key="fotoIdx" :alt="detailItem.nama_barang" class="w-full h-full object-cover transition-opacity duration-300">
+          <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 to-transparent" />
+          <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+            <span v-for="(_, i) in detailFoto" :key="i" class="w-1.5 h-1.5 rounded-full transition-all" :class="i === fotoIdx ? 'bg-white w-3' : 'bg-white/50'" />
+          </div>
+          <button v-if="detailFoto.length > 1" @click="fotoIdx = fotoIdx > 0 ? fotoIdx - 1 : detailFoto.length - 1" type="button" class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+            <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+          </button>
+          <button v-if="detailFoto.length > 1" @click="fotoIdx = fotoIdx < detailFoto.length - 1 ? fotoIdx + 1 : 0" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+            <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+          <div class="absolute top-3 right-3 bg-black/50 text-white text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm">
+            {{ fotoIdx + 1 }} / {{ detailFoto.length }}
+          </div>
         </div>
         <div v-else class="h-56 sm:h-72 bg-slate-100 flex items-center justify-center">
           <svg class="w-16 h-16 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,9 +379,9 @@
           </div>
 
           <!-- GIS / Peta -->
-          <div v-if="detailGis" class="mt-6 border-t border-slate-200 pt-6">
+          <div v-if="detailGis || detailItem.luas" class="mt-6 border-t border-slate-200 pt-6">
             <p class="text-sm font-bold text-slate-900 mb-3">Peta & Koordinat</p>
-            <div class="grid grid-cols-2 gap-3 mb-3">
+            <div v-if="detailGis" class="grid grid-cols-2 gap-3 mb-3">
               <div>
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Latitude</p>
                 <p class="text-sm font-medium text-slate-900 mt-0.5">{{ detailGis.latitude || '—' }}</p>
@@ -320,7 +391,7 @@
                 <p class="text-sm font-medium text-slate-900 mt-0.5">{{ detailGis.longitude || '—' }}</p>
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-3 mb-3">
+            <div v-if="detailGis" class="grid grid-cols-2 gap-3 mb-3">
               <div>
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Layer</p>
                 <p class="text-sm font-medium text-slate-900 mt-0.5">{{ detailGis.layer?.nama_layer || '—' }}</p>
@@ -330,9 +401,15 @@
                 <p class="text-sm font-medium text-slate-900 mt-0.5">{{ detailGis.tipe_geometri || '—' }}</p>
               </div>
             </div>
-            <div v-if="detailGis.luas_gis" class="mb-3">
-              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Luas (GIS)</p>
-              <p class="text-sm font-medium text-slate-900 mt-0.5">{{ detailGis.luas_gis }} m²</p>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Luas Tanah</p>
+                <p class="text-sm font-medium text-slate-900 mt-0.5">{{ detailItem.luas ? detailItem.luas + ' m²' : '—' }}</p>
+              </div>
+              <div v-if="calcPolygonArea">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Luas Polygon</p>
+                <p class="text-sm font-medium text-slate-900 mt-0.5">{{ calcPolygonArea }} m²</p>
+              </div>
             </div>
             <div ref="mapContainer" class="w-full h-64 sm:h-80 rounded-xl border border-slate-200 overflow-hidden z-0"></div>
           </div>
@@ -372,8 +449,11 @@
 </template>
 
 <script setup lang="ts">
+import { area } from '@turf/turf'
+
 const config = useRuntimeConfig()
 const apiBase = config.public.apiBase
+const loginPath = '/auth/' + config.public.loginHash
 
 const search = ref('')
 const kategoriFilter = ref('')
@@ -382,11 +462,26 @@ const totalPages = ref(1)
 const items = ref<any[]>([])
 const loading = ref(true)
 const kategoriList = ref<any[]>([])
+const heroBg = ['/logo-pemko.jpg', '/bkad-jam.jpg']
+const slideIndex = ref(0)
+let slideTimer: ReturnType<typeof setInterval>
+onMounted(() => { slideTimer = setInterval(() => { slideIndex.value = (slideIndex.value + 1) % heroBg.length }, 4000) })
+onUnmounted(() => clearInterval(slideTimer))
 
 const detailItem = ref<any | null>(null)
 const detailFoto = ref<any[]>([])
+const fotoIdx = ref(0)
 const detailPemanfaatan = ref<any[]>([])
 const detailGis = ref<any | null>(null)
+const calcPolygonArea = computed(() => {
+  const g = detailGis.value?.polygon_geojson
+  if (!g) return null
+  try {
+    const geo = typeof g === 'string' ? JSON.parse(g) : g
+    if (geo.type !== 'Polygon' && geo.type !== 'MultiPolygon') return null
+    return Math.round(area(geo) * 100) / 100
+  } catch { return null }
+})
 const mapContainer = ref<HTMLDivElement | null>(null)
 let mapInstance: any = null
 
@@ -464,12 +559,20 @@ function initMap(retries = 0) {
     return
   }
   const g = detailGis.value
-  const lat = parseFloat(g.latitude)
-  const lng = parseFloat(g.longitude)
+  const L = (window as any).L
+  let lat = parseFloat(g.latitude)
+  let lng = parseFloat(g.longitude)
+  if ((isNaN(lat) || isNaN(lng)) && g.polygon_geojson) {
+    try {
+      const geo = typeof g.polygon_geojson === 'string' ? JSON.parse(g.polygon_geojson) : g.polygon_geojson
+      const center = L.geoJSON(geo).getBounds().getCenter()
+      lat = center.lat; lng = center.lng
+    } catch {}
+  }
   if (isNaN(lat) || isNaN(lng)) return
 
-  mapInstance = (window as any).L.map(mapContainer.value, { zoomControl: true }).setView([lat, lng], 16)
-  ;(window as any).L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  mapInstance = L.map(mapContainer.value, { zoomControl: true }).setView([lat, lng], 16)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; OpenStreetMap'
   }).addTo(mapInstance)
@@ -479,16 +582,16 @@ function initMap(retries = 0) {
   if (g.polygon_geojson) {
     try {
       const geo = typeof g.polygon_geojson === 'string' ? JSON.parse(g.polygon_geojson) : g.polygon_geojson
-      ;(window as any).L.geoJSON(geo, {
+      L.geoJSON(geo, {
         style: { color, weight: 2, fillColor: color, fillOpacity: 0.25 }
       }).addTo(mapInstance).bindPopup(`<b>${detailItem.value?.nama_barang}</b>`)
     } catch {}
   } else if (g.tipe_geometri === 'Point' || g.tipe_geometri === 'point') {
-    ;(window as any).L.marker([lat, lng])
+    L.marker([lat, lng])
       .addTo(mapInstance)
       .bindPopup(`<b>${detailItem.value?.nama_barang}</b><br>${lat}, ${lng}`)
   } else {
-    ;(window as any).L.circleMarker([lat, lng], {
+    L.circleMarker([lat, lng], {
       radius: 10, color, fillColor: color, fillOpacity: 0.4, weight: 2
     }).addTo(mapInstance).bindPopup(`<b>${detailItem.value?.nama_barang}</b>`)
   }
@@ -496,9 +599,16 @@ function initMap(retries = 0) {
   setTimeout(() => mapInstance?.invalidateSize(), 300)
 }
 
+function genPolygonFromLuas(luas: number, lat = 3.5850, lng = 98.6753) {
+  const offset = Math.sqrt(luas) / 222000 // ponytail: uniform square, improve with turf if precision needed
+  const coords = [[lng - offset, lat - offset], [lng + offset, lat - offset], [lng + offset, lat + offset], [lng - offset, lat + offset], [lng - offset, lat - offset]]
+  return { type: 'Polygon', coordinates: [coords] }
+}
+
 async function openDetail(item: any) {
   detailItem.value = item
   detailFoto.value = []
+  fotoIdx.value = 0
   detailPemanfaatan.value = []
   detailGis.value = null
   try {
@@ -508,9 +618,11 @@ async function openDetail(item: any) {
     if (json.pemanfaatan) detailPemanfaatan.value = json.pemanfaatan
     if (json.data?.gis_aset) {
       detailGis.value = json.data.gis_aset
-      await nextTick()
-      initMap()
+    } else if (parseFloat(item.luas) > 0) {
+      detailGis.value = { latitude: 3.5850, longitude: 98.6753, polygon_geojson: genPolygonFromLuas(parseFloat(item.luas)), tipe_geometri: 'Polygon' }
     }
+    await nextTick()
+    initMap()
   } catch {}
 }
 

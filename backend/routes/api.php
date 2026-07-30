@@ -50,7 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/dokumen-pemanfaatan', [DokumenPemanfaatanController::class, 'store']);
     Route::delete('/dokumen-pemanfaatan/{id}', [DokumenPemanfaatanController::class, 'destroy']);
     Route::post('/foto-aset', [FotoAsetController::class, 'store']);
-    Route::delete('/foto-aset/{id}', [FotoAsetController::class, 'destroy']);
+    Route::delete('/foto-aset/{foto_aset}', [FotoAsetController::class, 'destroy']);
 
     Route::get('/riwayat-aset', [RiwayatAsetController::class, 'index']);
     Route::post('/riwayat-aset', [RiwayatAsetController::class, 'store']);

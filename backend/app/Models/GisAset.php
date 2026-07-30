@@ -20,6 +20,36 @@ class GisAset extends Model
                 $model->id = Str::uuid()->toString();
             }
         });
+        static::saving(function ($model) {
+            if ($model->polygon_geojson && !$model->luas_gis) {
+                $model->luas_gis = $model->calculateAreaFromPolygon();
+            }
+        });
+    }
+
+    protected function calculateAreaFromPolygon(): ?float
+    {
+        $geo = $this->polygon_geojson;
+        if (!$geo || !isset($geo['type'])) return null;
+        if (!in_array($geo['type'], ['Polygon', 'MultiPolygon'])) return null;
+
+        $rings = $geo['type'] === 'Polygon'
+            ? $geo['coordinates']
+            : $geo['coordinates'][0] ?? [];
+
+        // Shoelace formula (WGS84 approximate)
+        $area = 0;
+        foreach ($rings as $ring) {
+            $n = count($ring);
+            if ($n < 3) continue;
+            $s = 0;
+            for ($i = 0; $i < $n - 1; $i++) {
+                $s += deg2rad($ring[$i][1]) * deg2rad($ring[$i + 1][0]);
+                $s -= deg2rad($ring[$i + 1][1]) * deg2rad($ring[$i][0]);
+            }
+            $area += abs($s) / 2 * (6371000 * 6371000);
+        }
+        return round($area, 2);
     }
 
     protected $fillable = [

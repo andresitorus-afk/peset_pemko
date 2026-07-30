@@ -66,10 +66,11 @@ defineEmits<{ toggleDark: [] }>()
 const route = useRoute()
 const router = useRouter()
 const { user, logout } = useAuth()
+const config = useRuntimeConfig()
 
 async function handleLogout() {
   await logout()
-  router.push('/auth/login')
+  router.push('/auth/' + config.public.loginHash)
 }
 
 const breadcrumbs = computed(() => {
