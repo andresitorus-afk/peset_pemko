@@ -11,9 +11,6 @@ export default defineNuxtConfig({
       loginHash: process.env.NUXT_PUBLIC_LOGIN_HASH || ''
     }
   },
-  router: {
-    middleware: ['auth']
-  },
   app: {
     head: {
       link: [

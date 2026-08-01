@@ -15,6 +15,8 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
+RUN echo 'opcache.enable_cli=1' > /usr/local/etc/php/conf.d/zz-opcache-cli.ini
+
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 EXPOSE 9000
