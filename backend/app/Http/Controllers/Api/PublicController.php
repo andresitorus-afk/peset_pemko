@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AsetResource;
 use App\Models\Aset;
+use App\Models\RekomendasiAi;
 use Illuminate\Http\JsonResponse;
 
 class PublicController extends Controller
@@ -38,5 +39,17 @@ class PublicController extends Controller
             'foto' => $aset->foto,
             'pemanfaatan' => $aset->pemanfaatan,
         ]);
+    }
+
+    public function rekomendasi(string $id): JsonResponse
+    {
+        $aset = Aset::findOrFail($id);
+
+        $rekomendasi = RekomendasiAi::where('aset_id', $aset->id)
+            ->where('status', 'sukses')
+            ->orderByDesc('created_at')
+            ->first();
+
+        return response()->json(['data' => $rekomendasi?->hasil]);
     }
 }

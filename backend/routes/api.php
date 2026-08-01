@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\RoleEmailDomainController;
 use App\Http\Controllers\Api\PoiController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\RekomendasiAiController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -24,6 +25,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::get('/public/aset', [\App\Http\Controllers\Api\PublicController::class, 'aset']);
 Route::get('/public/aset/{id}', [\App\Http\Controllers\Api\PublicController::class, 'asetDetail']);
+Route::get('/public/aset/{id}/rekomendasi', [\App\Http\Controllers\Api\PublicController::class, 'rekomendasi']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -60,6 +62,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/riwayat-aset', [RiwayatAsetController::class, 'index']);
     Route::post('/riwayat-aset', [RiwayatAsetController::class, 'store']);
+
+    Route::post('/rekomendasi-ai/{aset}', [RekomendasiAiController::class, 'store']);
+    Route::get('/rekomendasi-ai/{aset}', [RekomendasiAiController::class, 'index']);
 
     Route::prefix('gis')->group(function () {
         Route::get('/aset', [GisAsetController::class, 'index']);
