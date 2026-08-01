@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\FotoAsetController;
 use App\Http\Controllers\Api\RiwayatAsetController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\RoleEmailDomainController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,8 +30,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
-    Route::apiResource('roles', RoleController::class);
-    Route::apiResource('users', UserController::class);
+    Route::middleware('super_admin')->group(function () {
+        Route::apiResource('roles', RoleController::class);
+        Route::apiResource('users', UserController::class);
+        Route::apiResource('role-email-domains', RoleEmailDomainController::class);
+    });
     Route::apiResource('opd', OpdController::class);
     Route::apiResource('kategori-aset', KategoriAsetController::class);
     Route::apiResource('gis-layer', GisLayerController::class);

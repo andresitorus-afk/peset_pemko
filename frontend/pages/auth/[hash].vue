@@ -16,8 +16,28 @@
         <h2 class="text-2xl font-bold text-slate-900 mb-1">Selamat Datang</h2>
         <p class="text-sm text-slate-500 mb-8">Silakan masuk ke akun Anda untuk melanjutkan</p>
 
+        <!-- Tabs -->
+        <div class="flex gap-1 p-1 bg-slate-100 rounded-xl mb-6">
+          <button
+            type="button"
+            @click="mode = 'login'"
+            :class="[
+              'flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all',
+              mode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+            ]"
+          >Masuk</button>
+          <button
+            type="button"
+            @click="mode = 'register'"
+            :class="[
+              'flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all',
+              mode === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+            ]"
+          >Daftar</button>
+        </div>
+
         <!-- Login Form -->
-        <form @submit.prevent="handleLogin" class="space-y-5" novalidate>
+        <form v-if="mode === 'login'" @submit.prevent="handleLogin" class="space-y-5" novalidate>
           <!-- Email -->
           <div>
             <label for="email" class="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>
@@ -140,6 +160,77 @@
           </button>
         </form>
 
+        <!-- Register Form -->
+        <form v-else @submit.prevent="handleRegister" class="space-y-5" novalidate>
+          <div>
+            <label for="reg-name" class="block text-sm font-semibold text-slate-700 mb-1.5">Nama Lengkap</label>
+            <input
+              id="reg-name"
+              v-model="reg.name"
+              type="text"
+              autocomplete="name"
+              placeholder="Nama lengkap Anda"
+              class="w-full px-4 py-4 border-2 rounded-xl text-base outline-none transition-all duration-200 bg-white focus:ring-4 border-slate-200 focus:ring-teal-200 focus:border-teal-500 hover:border-slate-300"
+            />
+          </div>
+
+          <div>
+            <label for="reg-email" class="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>
+            <input
+              id="reg-email"
+              v-model="reg.email"
+              type="email"
+              autocomplete="email"
+              placeholder="contoh: nama@pemkomedan.go.id"
+              class="w-full px-4 py-4 border-2 rounded-xl text-base outline-none transition-all duration-200 bg-white focus:ring-4 border-slate-200 focus:ring-teal-200 focus:border-teal-500 hover:border-slate-300"
+            />
+          </div>
+
+          <div>
+            <label for="reg-password" class="block text-sm font-semibold text-slate-700 mb-1.5">Kata Sandi</label>
+            <input
+              id="reg-password"
+              v-model="reg.password"
+              type="password"
+              autocomplete="new-password"
+              placeholder="Minimal 8 karakter"
+              class="w-full px-4 py-4 border-2 rounded-xl text-base outline-none transition-all duration-200 bg-white focus:ring-4 border-slate-200 focus:ring-teal-200 focus:border-teal-500 hover:border-slate-300"
+            />
+          </div>
+
+          <div>
+            <label for="reg-password-confirm" class="block text-sm font-semibold text-slate-700 mb-1.5">Konfirmasi Kata Sandi</label>
+            <input
+              id="reg-password-confirm"
+              v-model="reg.password_confirmation"
+              type="password"
+              autocomplete="new-password"
+              placeholder="Ulangi kata sandi"
+              class="w-full px-4 py-4 border-2 rounded-xl text-base outline-none transition-all duration-200 bg-white focus:ring-4 border-slate-200 focus:ring-teal-200 focus:border-teal-500 hover:border-slate-300"
+            />
+          </div>
+
+          <button
+            type="submit"
+            :disabled="loading"
+            :class="[
+              'w-full py-4 rounded-xl text-base font-bold shadow-lg transition-all duration-200',
+              loading
+                ? 'bg-teal-400 text-white cursor-not-allowed'
+                : 'bg-gradient-to-r from-teal-600 to-teal-500 text-white hover:from-teal-700 hover:to-teal-600 hover:shadow-xl active:scale-[0.98]'
+            ]"
+          >
+            <span v-if="loading" class="flex items-center justify-center gap-2">
+              <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Memproses...
+            </span>
+            <span v-else>Daftar</span>
+          </button>
+        </form>
+
         <!-- Error Alert -->
         <Transition name="alert">
           <div v-if="loginError" role="alert" class="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 shadow-sm">
@@ -257,10 +348,12 @@ if (route.params.hash !== config.public.loginHash) {
   router.replace('/')
 }
 
-const { login, fetchUser } = useAuth()
+const { login, register, fetchUser } = useAuth()
 
+const mode = ref<'login' | 'register'>('login')
 const email = ref('')
 const password = ref('')
+const reg = reactive({ name: '', email: '', password: '', password_confirmation: '' })
 const remember = ref(false)
 const showPassword = ref(false)
 const loading = ref(false)
@@ -315,6 +408,37 @@ async function handleLogin() {
     router.push('/admin')
   } catch (e: any) {
     loginError.value = e.message || 'Email atau kata sandi yang Anda masukkan salah. Silakan coba lagi.'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleRegister() {
+  loginError.value = ''
+  if (!reg.name || !reg.email || !reg.password || !reg.password_confirmation) {
+    loginError.value = 'Semua kolom wajib diisi.'
+    return
+  }
+  if (reg.password.length < 8) {
+    loginError.value = 'Kata sandi minimal 8 karakter.'
+    return
+  }
+  if (reg.password !== reg.password_confirmation) {
+    loginError.value = 'Konfirmasi kata sandi tidak cocok.'
+    return
+  }
+  if (!/^[^\s@]+@(?:[a-z0-9-]+\.)*pemkomedan\.go\.id$/i.test(reg.email)) {
+    loginError.value = 'Email harus berakhiran @pemkomedan.go.id'
+    return
+  }
+
+  loading.value = true
+  try {
+    await register(reg.name, reg.email, reg.password)
+    await fetchUser()
+    router.push('/admin')
+  } catch (e: any) {
+    loginError.value = e.message || 'Pendaftaran gagal. Silakan coba lagi.'
   } finally {
     loading.value = false
   }

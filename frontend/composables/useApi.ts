@@ -4,9 +4,18 @@ export function useApi() {
   const config = useRuntimeConfig()
   const baseURL = config.public?.apiBase || 'http://localhost:8000'
 
+  function readCookie(name: string): string | null {
+    if (typeof document === 'undefined') return null
+    const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'))
+    return m ? decodeURIComponent(m[1]) : null
+  }
+
   function getToken(): string | null {
-    if (typeof localStorage === 'undefined') return null
-    return localStorage.getItem('token')
+    if (typeof localStorage !== 'undefined') {
+      const t = localStorage.getItem('token')
+      if (t) return t
+    }
+    return readCookie('peset_token')
   }
 
   function headers(): Record<string, string> {

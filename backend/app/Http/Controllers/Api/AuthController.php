@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
+use App\Models\RoleEmailDomain;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,7 +18,7 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'required|string|email|max:255|unique:users|regex:/@(?:[a-z0-9-]+\.)*pemkomedan\.go\.id$/i',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
@@ -24,6 +26,7 @@ class AuthController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'role_id' => $this->roleFromEmail($validated['email']),
         ]);
 
         $user->load('role');
@@ -62,5 +65,17 @@ class AuthController extends Controller
     public function user(Request $request): JsonResponse
     {
         return response()->json($request->user()->load('role'));
+    }
+
+    private function roleFromEmail(string $email): ?int
+    {
+        $domain = strtolower(strrchr($email, '@'));
+
+        return RoleEmailDomain::query()
+            ->orderByRaw('CHAR_LENGTH(domain) DESC')
+            ->get()
+            ->first(fn ($m) => str_ends_with($domain, $m->domain))
+            ?->role_id
+            ?? Role::where('name', 'Petugas')->value('id');
     }
 }

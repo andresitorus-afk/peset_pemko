@@ -35,9 +35,15 @@ class DatabaseSeeder extends Seeder
 
         $superAdminRole = DB::table('roles')->where('name', 'Super Admin')->first()->id;
         $petugasRole = DB::table('roles')->where('name', 'Petugas')->first()->id;
+        $adminRole = DB::table('roles')->where('name', 'Admin')->first()->id;
 
         DB::table('users')->where('email', 'admin@pemkomedan.go.id')->update(['role_id' => $superAdminRole]);
         DB::table('users')->where('email', 'petugas@pemkomedan.go.id')->update(['role_id' => $petugasRole]);
+
+        DB::table('role_email_domains')->insert([
+            ['domain' => 'pemkomedan.go.id', 'role_id' => $petugasRole, 'created_at' => now(), 'updated_at' => now()],
+            ['domain' => 'admin.pemkomedan.go.id', 'role_id' => $adminRole, 'created_at' => now(), 'updated_at' => now()],
+        ]);
 
         // OPD
         $opd1 = Opd::create(['kode_opd' => 'OPD.001', 'nama_opd' => 'Dinas Pendidikan', 'kepala_opd' => 'Dr. H. Ahmad Siregar, M.Pd', 'nip_kepala' => '196805151993011001']);
