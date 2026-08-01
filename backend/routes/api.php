@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\RiwayatAsetController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\RoleEmailDomainController;
+use App\Http\Controllers\Api\PoiController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -40,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('gis-layer', GisLayerController::class);
     Route::apiResource('jenis-pemanfaatan', JenisPemanfaatanController::class);
     Route::apiResource('pihak-ketiga', PihakKetigaController::class);
+    Route::apiResource('poi', PoiController::class);
 
     Route::apiResource('aset', AsetController::class);
     Route::post('/aset/import', [AsetController::class, 'import']);
