@@ -8,6 +8,7 @@ use App\Models\RekomendasiAi;
 use App\Services\GeminiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class RekomendasiAiController extends Controller
@@ -27,6 +28,7 @@ class RekomendasiAiController extends Controller
         try {
             $text = $this->gemini->generate($this->gemini->buildPrompt($aset, $pois));
             $hasil = $this->gemini->parseJson($text);
+            $this->gemini->validateHasil($hasil);
             RekomendasiAi::create([
                 'aset_id' => $aset->id,
                 'hasil' => $hasil,
@@ -41,7 +43,9 @@ class RekomendasiAiController extends Controller
                 'error' => $e->getMessage(),
                 'created_by' => $request->user()?->id,
             ]);
-            return response()->json(['message' => 'Rekomendasi gagal: ' . $e->getMessage()], 502);
+            Log::error('Rekomendasi AI gagal untuk aset ' . $aset->id . ': ' . $e->getMessage());
+
+            return response()->json(['message' => 'Rekomendasi gagal, coba lagi.'], 502);
         }
     }
 

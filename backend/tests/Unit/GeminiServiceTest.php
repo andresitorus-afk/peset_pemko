@@ -37,4 +37,11 @@ class GeminiServiceTest extends TestCase
         $prompt = $service->buildPrompt($aset, []);
         $this->assertStringContainsString('Tidak ada POI terdekat', $prompt);
     }
+
+    public function test_validate_hasil_menolak_struktur_salah(): void
+    {
+        $service = new GeminiService;
+        $this->expectException(\RuntimeException::class);
+        $service->validateHasil(['foo' => 'bar']);
+    }
 }

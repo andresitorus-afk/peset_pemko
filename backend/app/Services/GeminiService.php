@@ -129,9 +129,9 @@ PROMPT;
             throw new RuntimeException($data['error']['message'] ?? "Gemini error HTTP {$httpCode}");
         }
 
-        $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
-        if ($text === '') {
-            throw new RuntimeException('Gemini mengembalikan respons kosong');
+        $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+        if (!is_string($text) || $text === '') {
+            throw new RuntimeException('Respons Gemini tidak valid');
         }
 
         return $text;
@@ -157,5 +157,14 @@ PROMPT;
         }
 
         return $data;
+    }
+
+    public function validateHasil(array $hasil): void
+    {
+        if (!isset($hasil['jenis_pemanfaatan']) || !is_string($hasil['jenis_pemanfaatan'])
+            || !isset($hasil['ide_utama']) || !is_string($hasil['ide_utama'])
+            || !isset($hasil['alasan']) || !is_array($hasil['alasan'])) {
+            throw new RuntimeException('Respons Gemini tidak memiliki struktur yang valid');
+        }
     }
 }

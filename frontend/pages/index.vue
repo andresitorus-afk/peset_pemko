@@ -645,13 +645,12 @@ async function openDetail(item: any) {
     } else if (parseFloat(item.luas) > 0) {
       detailGis.value = { latitude: 3.5850, longitude: 98.6753, polygon_geojson: genPolygonFromLuas(parseFloat(item.luas)), tipe_geometri: 'Polygon' }
     }
-    try {
-      const rres = await fetch(`${apiBase}/api/public/aset/${item.id}/rekomendasi`)
-      const rjson = await rres.json()
-      detailRekomendasi.value = rjson.data || null
-    } catch { detailRekomendasi.value = null }
     await nextTick()
     initMap()
+    fetch(`${apiBase}/api/public/aset/${item.id}/rekomendasi`)
+      .then(r => r.json())
+      .then(j => { detailRekomendasi.value = j.data || null })
+      .catch(() => { detailRekomendasi.value = null })
   } catch {}
 }
 
