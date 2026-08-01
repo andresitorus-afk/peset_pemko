@@ -428,6 +428,28 @@
             </div>
           </div>
 
+          <div v-if="detailRekomendasi" class="mt-6 border-t border-slate-200 pt-6">
+            <p class="text-sm font-bold text-slate-900 mb-3">Rekomendasi Pemanfaatan (AI)</p>
+            <div class="rounded-xl bg-violet-50 border border-violet-100 p-4">
+              <div class="flex items-start justify-between gap-3">
+                <p class="text-base font-bold text-slate-900 leading-snug">{{ detailRekomendasi.ide_utama }}</p>
+                <span class="flex-shrink-0 px-2.5 py-1 rounded-full bg-teal-100 text-teal-700 text-xs font-bold">{{ detailRekomendasi.jenis_pemanfaatan }}</span>
+              </div>
+              <ul class="mt-3 space-y-2">
+                <li v-for="(a, i) in detailRekomendasi.alasan" :key="i" class="flex gap-2 text-sm text-slate-700">
+                  <span class="text-violet-600 mt-0.5">•</span><span>{{ a }}</span>
+                </li>
+              </ul>
+              <div v-if="detailRekomendasi.alternatif && detailRekomendasi.alternatif.length" class="mt-3 space-y-2">
+                <div v-for="(alt, i) in detailRekomendasi.alternatif" :key="'alt' + i" class="bg-white rounded-lg p-3 border border-violet-100">
+                  <p class="text-sm font-semibold text-slate-800">{{ alt.ide }}</p>
+                  <p class="text-xs text-slate-500 mt-1">{{ alt.alasan }}</p>
+                </div>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-3">Rekomendasi otomatis dari AI sebagai bahan pertimbangan.</p>
+            </div>
+          </div>
+
           <div class="mt-8 flex flex-col sm:flex-row gap-3">
             <a :href="'https://wa.me/628617861111?text=Halo%20saya%20tertarik%20dengan%20aset%20' + encodeURIComponent(detailItem.nama_barang) + '%20(kode:%20' + encodeURIComponent(detailItem.kode_barang) + ')'" target="_blank"
               class="flex-1 flex items-center justify-center gap-2 bg-teal-700 hover:bg-teal-800 text-white font-semibold py-3 sm:py-4 px-6 rounded-xl text-base transition-colors">
@@ -473,6 +495,7 @@ const detailFoto = ref<any[]>([])
 const fotoIdx = ref(0)
 const detailPemanfaatan = ref<any[]>([])
 const detailGis = ref<any | null>(null)
+const detailRekomendasi = ref<any | null>(null)
 const calcPolygonArea = computed(() => {
   const g = detailGis.value?.polygon_geojson
   if (!g) return null
@@ -611,6 +634,7 @@ async function openDetail(item: any) {
   fotoIdx.value = 0
   detailPemanfaatan.value = []
   detailGis.value = null
+  detailRekomendasi.value = null
   try {
     const res = await fetch(`${apiBase}/api/public/aset/${item.id}`)
     const json = await res.json()
@@ -621,6 +645,11 @@ async function openDetail(item: any) {
     } else if (parseFloat(item.luas) > 0) {
       detailGis.value = { latitude: 3.5850, longitude: 98.6753, polygon_geojson: genPolygonFromLuas(parseFloat(item.luas)), tipe_geometri: 'Polygon' }
     }
+    try {
+      const rres = await fetch(`${apiBase}/api/public/aset/${item.id}/rekomendasi`)
+      const rjson = await rres.json()
+      detailRekomendasi.value = rjson.data || null
+    } catch { detailRekomendasi.value = null }
     await nextTick()
     initMap()
   } catch {}
