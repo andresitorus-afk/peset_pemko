@@ -123,9 +123,9 @@ Alasan wajib merujuk data yang dikirim (POI/jarak/luas/kondisi), dilarang mengar
 - Tombol "Riwayat" → `GET /rekomendasi-ai/{id}` daftar hasil sebelumnya.
 - Kalau aset belum punya koordinat & POI kosong: tampilkan toast info "tidak ada POI terdekat, rekomendasi tetap jalan".
 
-### 2. Publik `pages/index.vue` (detail aset)
-- Panel "Rekomendasi Pemanfaatan" menampilkan hasil terakhir dari `GET /public/aset/{id}/rekomendasi` (render sama seperti admin).
-- Tanpa panggilan Gemini; hasil dibaca dari DB.
+### 2. Publik `pages/index.vue` (modal detail aset)
+- Di **modal detail aset** (`openDetail`), tambah section "Rekomendasi Pemanfaatan" di bawah Riwayat Pemanfaatan, menampilkan hasil terakhir dari `GET /public/aset/{id}/rekomendasi` (render sama seperti admin).
+- Tidak muncul di list/beranda. Tanpa panggilan Gemini; hasil dibaca dari DB.
 
 ## Error Handling
 
