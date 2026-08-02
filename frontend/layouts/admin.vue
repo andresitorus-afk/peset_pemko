@@ -14,10 +14,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, onBeforeUnmount } from 'vue'
+import { useAuth } from '~/composables/useAuth'
+import { useLiveChat } from '~/composables/useLiveChat'
 
 const sidebarCollapsed = ref(false)
 const isDark = ref(false)
+
+const auth = useAuth()
+const { setStaffAuth, refreshUnread, watchStaff, startPoll, stopPoll } = useLiveChat()
+
+watch(() => auth.token.value, (token) => {
+  if (token) {
+    setStaffAuth()
+    refreshUnread()
+    watchStaff()
+    startPoll()
+  }
+}, { immediate: true })
+
+onBeforeUnmount(() => stopPoll())
 
 function toggleDark() {
   isDark.value = !isDark.value
