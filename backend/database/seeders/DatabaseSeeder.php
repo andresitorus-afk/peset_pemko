@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call(KategoriAsetSeeder::class);
         $this->call(PoiSeeder::class);
+        $this->call(ChatbotFaqSeeder::class);
 
         $admin = User::create(['name' => 'Admin Pemko', 'email' => 'admin@pemkomedan.go.id', 'password' => bcrypt('password')]);
         $petugas = User::create(['name' => 'Petugas Aset', 'email' => 'petugas@pemkomedan.go.id', 'password' => bcrypt('password')]);
