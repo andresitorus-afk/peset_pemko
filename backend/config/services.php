@@ -40,4 +40,9 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-flash-latest'),
     ],
 
+    'chatbot' => [
+        'fallback_reply' => 'Mohon maaf, pertanyaan Anda akan diteruskan ke petugas. Mohon tunggu balasan, terima kasih.',
+        'greeting' => 'Halo! Selamat datang di Live Chat PESET. Kami siap membantu Anda terkait pemanfaatan aset daerah. Silakan ketik pertanyaan Anda.',
+    ],
+
 ];
