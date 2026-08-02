@@ -88,10 +88,13 @@ class ChatController extends Controller
 
     private function unreadFor(ChatSession $session): int
     {
-        return ChatMessage::where('session_id', $session->id)
-            ->whereIn('sender_type', ['visitor', 'admin'])
-            ->where(fn ($q) => $q->where('created_at', '>', $session->last_admin_seen_at)
-                ->orWhereNull('last_admin_seen_at'))
-            ->count();
+        $query = ChatMessage::where('session_id', $session->id)
+            ->whereIn('sender_type', ['visitor', 'admin']);
+
+        if ($session->last_admin_seen_at) {
+            $query->where('created_at', '>', $session->last_admin_seen_at);
+        }
+
+        return $query->count();
     }
 }

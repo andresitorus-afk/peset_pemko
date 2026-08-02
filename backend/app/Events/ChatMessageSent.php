@@ -5,10 +5,10 @@ namespace App\Events;
 use App\Models\ChatMessage;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Queue\SerializesModels;
 
-class ChatMessageSent implements ShouldBroadcast
+class ChatMessageSent implements ShouldBroadcastNow
 {
     use SerializesModels;
 
