@@ -65,15 +65,12 @@ export function useAuth() {
   }
 
   async function register(name: string, email: string, password: string) {
-    const res = await api.post('/register', {
+    return await api.post('/register', {
       name,
       email,
       password,
       password_confirmation: password,
     })
-    persistToken(res.token)
-    user.value = res.user
-    return res
   }
 
   async function logout() {

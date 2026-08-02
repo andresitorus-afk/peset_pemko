@@ -233,6 +233,24 @@
 
         <!-- Error Alert -->
         <Transition name="alert">
+          <div v-if="successMsg" role="status" class="mt-6 p-4 bg-teal-50 border border-teal-200 rounded-xl flex items-start gap-3 shadow-sm">
+            <svg class="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-teal-800">Pendaftaran Berhasil</p>
+              <p class="text-sm text-teal-600 mt-0.5">{{ successMsg }}</p>
+            </div>
+            <button @click="successMsg = ''" type="button" class="text-teal-400 hover:text-teal-600 transition-colors" aria-label="Tutup">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+        </Transition>
+
+        <!-- Error Alert -->
+        <Transition name="alert">
           <div v-if="loginError" role="alert" class="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 shadow-sm">
             <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -358,6 +376,7 @@ const remember = ref(false)
 const showPassword = ref(false)
 const loading = ref(false)
 const loginError = ref('')
+const successMsg = ref('')
 
 const validation = reactive({
   email: { error: '' },
@@ -399,6 +418,7 @@ function validate(): boolean {
 
 async function handleLogin() {
   loginError.value = ''
+  successMsg.value = ''
   if (!validate()) return
 
   loading.value = true
@@ -435,8 +455,13 @@ async function handleRegister() {
   loading.value = true
   try {
     await register(reg.name, reg.email, reg.password)
-    await fetchUser()
-    router.push('/admin')
+    reg.name = ''
+    reg.email = ''
+    reg.password = ''
+    reg.password_confirmation = ''
+    successMsg.value = 'Pendaftaran berhasil. Silakan login dengan akun yang didaftarkan.'
+    mode.value = 'login'
+    loginError.value = ''
   } catch (e: any) {
     loginError.value = e.message || 'Pendaftaran gagal. Silakan coba lagi.'
   } finally {
