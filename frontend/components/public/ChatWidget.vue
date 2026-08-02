@@ -177,7 +177,7 @@ async function send() {
 }
 
 onMounted(() => {
-  setSessionToken(session?.token ?? null)
+  ensureSession()
 })
 
 onUnmounted(() => {

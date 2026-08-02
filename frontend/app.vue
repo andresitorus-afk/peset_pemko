@@ -4,7 +4,7 @@
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-    <ChatWidget v-if="showWidget" />
+    <PublicChatWidget v-if="showWidget" />
   </div>
 </template>
 

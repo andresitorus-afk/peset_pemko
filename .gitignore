@@ -34,3 +34,8 @@ Thumbs.db
 .env
 .env.backup
 .env.production
+
+# Project tooling / misc
+.opencode/
+peset_pemko/
+frontend/bkad jam.jpg
