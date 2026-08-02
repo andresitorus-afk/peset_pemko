@@ -18,6 +18,10 @@ use App\Http\Controllers\Api\RoleEmailDomainController;
 use App\Http\Controllers\Api\PoiController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\RekomendasiAiController;
+use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\ChatbotFaqController;
+use App\Http\Controllers\Api\PublicChatController;
+use App\Http\Controllers\Api\BroadcastAuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -26,6 +30,12 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/public/aset', [\App\Http\Controllers\Api\PublicController::class, 'aset']);
 Route::get('/public/aset/{id}', [\App\Http\Controllers\Api\PublicController::class, 'asetDetail']);
 Route::get('/public/aset/{id}/rekomendasi', [\App\Http\Controllers\Api\PublicController::class, 'rekomendasi']);
+
+Route::post('/public/chat/sessions', [PublicChatController::class, 'store'])->middleware('throttle:20,1');
+Route::get('/public/chat/{session}/messages', [PublicChatController::class, 'index'])->middleware('throttle:60,1');
+Route::post('/public/chat/{session}/messages', [PublicChatController::class, 'storeMessage'])->middleware('throttle:10,1');
+
+Route::post('/broadcasting/auth', [BroadcastAuthController::class, 'authorize'])->middleware('throttle:120,1');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -65,6 +75,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/rekomendasi-ai/{aset}', [RekomendasiAiController::class, 'store']);
     Route::get('/rekomendasi-ai/{aset}', [RekomendasiAiController::class, 'index']);
+
+    Route::get('/chat/sessions', [ChatController::class, 'index']);
+    Route::get('/chat/sessions/{session}', [ChatController::class, 'show']);
+    Route::post('/chat/sessions/{session}/messages', [ChatController::class, 'storeMessage']);
+    Route::post('/chat/sessions/{session}/read', [ChatController::class, 'markRead']);
+    Route::post('/chat/sessions/{session}/close', [ChatController::class, 'close']);
+    Route::get('/chat/unread-count', [ChatController::class, 'unreadCount']);
+    Route::apiResource('chat/faqs', ChatbotFaqController::class);
 
     Route::prefix('gis')->group(function () {
         Route::get('/aset', [GisAsetController::class, 'index']);
