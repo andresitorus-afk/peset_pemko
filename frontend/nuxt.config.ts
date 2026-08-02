@@ -8,7 +8,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000',
-      loginHash: process.env.NUXT_PUBLIC_LOGIN_HASH || ''
+      loginHash: process.env.NUXT_PUBLIC_LOGIN_HASH || '',
+      reverbKey: process.env.NUXT_PUBLIC_REVERB_KEY || 'urkg7lwjohxtkxqm2jch',
+      reverbHost: process.env.NUXT_PUBLIC_REVERB_HOST || 'localhost'
     }
   },
   app: {

@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@turf/turf": "^7.3.5",
+    "laravel-echo": "^2.4.0",
     "leaflet-draw": "^1.0.4",
     "nuxt": "^3.21.8",
+    "pusher-js": "^8.6.0",
     "vue": "^3.5.39",
     "vue-router": "^5.1.0"
   },

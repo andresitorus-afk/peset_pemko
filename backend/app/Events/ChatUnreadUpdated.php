@@ -20,6 +20,11 @@ class ChatUnreadUpdated implements ShouldBroadcastNow
         return new PrivateChannel('chat.staff');
     }
 
+    public function broadcastAs(): string
+    {
+        return 'unread.updated';
+    }
+
     public function broadcastWith(): array
     {
         return ['session_id' => $this->sessionId];
