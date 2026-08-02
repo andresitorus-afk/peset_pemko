@@ -4,6 +4,7 @@
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+    <ChatWidget v-if="showWidget" />
   </div>
 </template>
 
@@ -14,4 +15,7 @@ const auth = useAuth()
 if (auth.token.value) {
   auth.fetchUser()
 }
+
+const route = useRoute()
+const showWidget = computed(() => !route.path.startsWith('/admin') && !route.path.startsWith('/auth'))
 </script>
