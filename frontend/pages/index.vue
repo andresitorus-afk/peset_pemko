@@ -6,7 +6,7 @@
         <div class="flex items-center justify-between h-16 sm:h-20">
           <a href="#" class="flex items-center gap-3 group">
             <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/15 flex items-center justify-center overflow-hidden ring-1 ring-white/30 shadow-inner group-hover:scale-105 transition-transform duration-300">
-              <img src="/logo-pemko.jpg" alt="Pemko Medan" class="h-7 sm:h-8">
+              <img src="/logo-pemko.jpg" alt="Pemko Medan" width="32" height="36" class="h-7 sm:h-8">
             </div>
             <div>
               <p class="text-base sm:text-lg font-extrabold text-white leading-tight tracking-tight">PESET</p>
@@ -37,6 +37,10 @@
       <div class="absolute inset-0 bg-teal-950">
         <img v-for="(bg, i) in heroBg" :key="i"
           :src="bg"
+          :fetchpriority="i === 0 ? 'high' : 'low'"
+          :loading="i === 0 ? 'eager' : 'lazy'"
+          decoding="async"
+          width="1920" height="1080"
           class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
           :class="slideIndex === i ? 'opacity-100' : 'opacity-0'" />
         <div class="absolute inset-0 bg-gradient-to-br from-teal-950/90 via-teal-900/70 to-teal-800/40" />
@@ -163,7 +167,7 @@
           <div class="absolute top-0 left-0 right-0 h-1.5 z-10" :style="{ backgroundColor: kibColor(item.kategori?.kode_kib) }" />
           <div class="relative h-48 sm:h-52 bg-teal-50 overflow-hidden">
             <div v-if="item.foto && item.foto.length" class="w-full h-full">
-              <img :src="fotoUrl(item.foto[0].file_path)" :alt="item.nama_barang" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+              <img :src="fotoUrl(item.foto[0].file_path)" :alt="item.nama_barang" loading="lazy" decoding="async" width="800" height="600" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
             </div>
             <div v-else class="flex items-center justify-center h-full">
               <div class="flex flex-col items-center gap-2">
@@ -291,7 +295,7 @@
             @click="openDetail(item)">
             <div class="absolute top-0 left-0 right-0 h-1.5 z-10" :style="{ backgroundColor: kibColor(item.kategori?.kode_kib) }" />
             <div class="relative h-44 sm:h-48 bg-teal-50 overflow-hidden">
-              <img v-if="item.foto && item.foto.length" :src="fotoUrl(item.foto[0].file_path)" :alt="item.nama_barang" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+              <img v-if="item.foto && item.foto.length" :src="fotoUrl(item.foto[0].file_path)" :alt="item.nama_barang" loading="lazy" decoding="async" width="800" height="600" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
               <div v-else class="flex items-center justify-center h-full">
                 <svg class="w-12 h-12 text-teal-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -388,7 +392,7 @@
           <div class="reveal bg-white rounded-3xl border border-teal-100 shadow-2xl shadow-teal-900/10 p-6 sm:p-8">
             <div class="flex items-center gap-4">
               <div class="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center overflow-hidden ring-1 ring-teal-100">
-                <img src="/logo-pemko.jpg" alt="Pemko Medan" class="h-10">
+                <img src="/logo-pemko.jpg" alt="Pemko Medan" width="40" height="44" class="h-10">
               </div>
               <div>
                 <h3 class="text-lg font-bold text-slate-900">BPKAD Kota Medan</h3>
@@ -442,7 +446,7 @@
           <div>
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center overflow-hidden ring-1 ring-white/20">
-                <img src="/logo-pemko.jpg" alt="Pemko Medan" class="h-7">
+                <img src="/logo-pemko.jpg" alt="Pemko Medan" width="28" height="31" class="h-7">
               </div>
               <div>
                 <p class="text-lg font-extrabold">PESET</p>
@@ -487,7 +491,7 @@
           </svg>
         </button>
         <div v-if="detailFoto && detailFoto.length" class="relative h-56 sm:h-72 bg-teal-50 group">
-          <img :src="fotoUrl(detailFoto[fotoIdx].file_path)" :key="fotoIdx" :alt="detailItem.nama_barang" class="w-full h-full object-cover transition-opacity duration-300">
+          <img :src="fotoUrl(detailFoto[fotoIdx].file_path)" :key="fotoIdx" :alt="detailItem.nama_barang" loading="lazy" decoding="async" width="800" height="600" class="w-full h-full object-cover transition-opacity duration-300">
           <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 to-transparent" />
           <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
             <span v-for="(_, i) in detailFoto" :key="i" class="w-1.5 h-1.5 rounded-full transition-all" :class="i === fotoIdx ? 'bg-white w-3' : 'bg-white/50'" />
@@ -660,8 +664,6 @@
 </template>
 
 <script setup lang="ts">
-import { area } from '@turf/turf'
-
 const config = useRuntimeConfig()
 const apiBase = config.public.apiBase
 
@@ -769,6 +771,8 @@ function setupReveal() {
 onMounted(() => {
   loadStats()
   setupReveal()
+  fetchData()
+  loadKategori()
   const cards = document.querySelectorAll('.grid.lg\\:grid-cols-4 .reveal')
   if (typeof IntersectionObserver !== 'undefined' && cards.length) {
     statsIo = new IntersectionObserver((entries) => {
@@ -792,7 +796,7 @@ const calcPolygonArea = computed(() => {
   try {
     const geo = typeof g === 'string' ? JSON.parse(g) : g
     if (geo.type !== 'Polygon' && geo.type !== 'MultiPolygon') return null
-    return Math.round(area(geo) * 100) / 100
+    return Math.round(polygonAreaM2(geo) * 100) / 100
   } catch { return null }
 })
 const mapContainer = ref<HTMLDivElement | null>(null)
@@ -994,9 +998,6 @@ async function loadKategori() {
     kategoriList.value = Array.from(cats.values())
   } catch {}
 }
-
-fetchData()
-loadKategori()
 </script>
 
 <style>

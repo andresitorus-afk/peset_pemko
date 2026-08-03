@@ -5,7 +5,7 @@
       <div class="w-full max-w-md">
         <!-- Brand -->
         <div class="flex items-center gap-3 mb-10">
-          <img src="/logo-pemko.jpg" alt="Pemko Medan" class="h-10">
+          <img src="/logo-pemko.jpg" alt="Pemko Medan" width="40" height="44" class="h-10">
           <div>
             <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">PESET</h1>
             <p class="text-xs text-slate-500 font-medium">Pemanfaatan Aset Daerah</p>

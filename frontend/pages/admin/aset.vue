@@ -150,7 +150,6 @@ definePageMeta({ layout: 'admin' })
 
 const api = useApi()
 const toast = useToast()
-import { area } from '@turf/turf'
 
 const items = ref<any[]>([])
 const page = ref(1)
@@ -371,7 +370,7 @@ function saveDrawnPolygon(layer: any) {
       form.value.polygon_geojson = geo
     }
     if (form.value.polygon_geojson) {
-      form.value.luas_gis = Math.round(area(form.value.polygon_geojson) * 100) / 100
+      form.value.luas_gis = Math.round(polygonAreaM2(form.value.polygon_geojson) * 100) / 100
     }
   } catch {}
 }
