@@ -76,16 +76,10 @@ class AsetController extends Controller
             'keterangan' => 'nullable|string',
         ]);
 
-        $oldStatus = $aset->status;
+        $old = $aset->getAttributes();
         $aset->update($validated);
 
-        if (isset($validated['status']) && $validated['status'] !== $oldStatus) {
-            $aset->riwayat()->create([
-                'aksi' => 'Pemanfaatan',
-                'deskripsi' => "Status berubah dari {$oldStatus} ke {$validated['status']}",
-                'user_id' => $request->user()->id,
-            ]);
-        }
+        \App\Services\AuditTrail::catat($aset, $aset, 'Pemeliharaan', $old, $aset->fresh()->getAttributes(), $request->user()->id);
 
         $this->handleGis($request, $aset);
 

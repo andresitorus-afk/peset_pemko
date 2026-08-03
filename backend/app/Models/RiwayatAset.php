@@ -22,7 +22,11 @@ class RiwayatAset extends Model
         });
     }
 
-    protected $fillable = ['aset_id', 'aksi', 'deskripsi', 'user_id'];
+    protected $fillable = ['aset_id', 'aksi', 'deskripsi', 'detail', 'user_id'];
+
+    protected $casts = [
+        'detail' => 'array',
+    ];
 
     public const UPDATED_AT = null;
 

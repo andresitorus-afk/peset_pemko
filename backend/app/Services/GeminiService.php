@@ -71,12 +71,14 @@ POI TERDEKAT (hasil pengukuran backend, bukan tebakan):
 
 PETA KEBUTUHAN (acu untuk alasan):
 - kampus: laundry, fotokopi, kos, coffee shop, warung makan, minimarket
-- sekolah: kantin, jasa fotokopi, tempat les
-- mal/pasar: kuliner, gudang, parkir
-- rumah_sakit: apotek, kantin, kos karyawan, parkir
+- sekolah: kantin, jasa fotokopi, tempat les, bimbel, koperasi
+- mal: kuliner, fashion, kafe, parkir, penyimpanan
+- pasar: kuliner, gudang, kios, parkir
+- rumah_sakit: apotek, kantin, kos karyawan, parkir, laundry
 - puskesmas: apotek, kantin
 - perumahan: minimarket, warung, laundry, tempat penitipan anak
 - stasiun: parkir, kuliner, penginapan
+- tempat_budaya: kafe, toko suvenir, galeri, ruang serbaguna
 
 JENIS PEMANFAATAN LEGAL (pilih kode):
 SEWA, PKP (Pinjam Pakai), KSP (Kerja Sama Pemanfaatan), BGS (Bangun Guna Serah), BSG (Bangun Serah Guna), KSPI (KSP untuk Infrastruktur).

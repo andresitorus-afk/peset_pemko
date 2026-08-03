@@ -21,7 +21,7 @@ class PoiController extends Controller
     {
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
-            'tipe' => 'required|string|in:kampus,sekolah,mal,pasar,rumah_sakit,puskesmas,kantor,perumahan,stasiun,lainnya',
+            'tipe' => 'required|string|in:kampus,sekolah,mal,pasar,rumah_sakit,puskesmas,kantor,perumahan,stasiun,tempat_budaya,lainnya',
             'alamat' => 'nullable|string|max:255',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
@@ -41,7 +41,7 @@ class PoiController extends Controller
     {
         $validated = $request->validate([
             'nama' => 'sometimes|required|string|max:255',
-            'tipe' => 'sometimes|required|string|in:kampus,sekolah,mal,pasar,rumah_sakit,puskesmas,kantor,perumahan,stasiun,lainnya',
+            'tipe' => 'sometimes|required|string|in:kampus,sekolah,mal,pasar,rumah_sakit,puskesmas,kantor,perumahan,stasiun,tempat_budaya,lainnya',
             'alamat' => 'nullable|string|max:255',
             'latitude' => 'sometimes|required|numeric|between:-90,90',
             'longitude' => 'sometimes|required|numeric|between:-180,180',

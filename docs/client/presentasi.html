@@ -1,0 +1,489 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PESET — Presentasi Pemanfaatan Aset Daerah Kota Medan</title>
+    <style>
+        :root {
+            --color-primary: #0D9488;
+            --color-primary-dark: #0F766E;
+            --color-primary-light: #14B8A6;
+            --color-background: #F8FAFC;
+            --color-surface: #FFFFFF;
+            --color-text: #0F172A;
+            --color-text-body: #334155;
+            --color-mute: #94A3B8;
+            --color-border: #E2E8F0;
+            --color-success: #10B981;
+            --color-warning: #F59E0B;
+            --gradient-primary: linear-gradient(135deg, #0D9488, #14B8A6);
+            --gradient-dark: linear-gradient(135deg, #0F172A, #0D9488);
+            --font-heading: 'Segoe UI', 'Inter', system-ui, sans-serif;
+            --font-body: 'Segoe UI', 'Inter', system-ui, sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+        body { background: var(--color-background); color: var(--color-text); font-family: var(--font-body); overflow: hidden; }
+        .slide-deck { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+        @media (min-width: 769px) {
+            .slide-deck {
+                max-width: calc(100vh * 16 / 9);
+                max-height: calc(100vw * 9 / 16);
+                margin: auto;
+                position: absolute;
+                inset: 0;
+                box-shadow: 0 0 60px rgba(15, 23, 42, 0.15);
+            }
+        }
+        .slide {
+            position: absolute; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 44px 60px; opacity: 0; visibility: hidden; transition: opacity 0.4s;
+            background: var(--color-background); overflow: hidden;
+        }
+        .slide.active { opacity: 1; visibility: visible; }
+        .slide-content { width: 100%; max-width: 100%; max-height: 100%; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 18px; text-align: center; }
+        h1, h2 { font-family: var(--font-heading); }
+        .slide-title {
+            font-size: clamp(28px, 4.6vw, 52px);
+            background: var(--gradient-dark);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; line-height: 1.15; font-weight: 800;
+        }
+        h2 { font-size: clamp(22px, 3.2vw, 36px); font-weight: 700; }
+        p, li { font-size: clamp(14px, 1.5vw, 18px); line-height: 1.6; color: var(--color-text-body); }
+        .kicker {
+            font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--color-primary);
+            font-weight: 700; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .kicker::before, .kicker::after { content: ''; width: 26px; height: 2px; background: var(--color-primary-light); display: inline-block; }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand-logo {
+            width: 48px; height: 48px; border-radius: 13px; background: var(--gradient-primary); color: #fff;
+            display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 19px;
+            box-shadow: 0 8px 20px rgba(13, 148, 136, 0.35);
+        }
+        .grid { display: grid; gap: 14px; width: 100%; text-align: left; }
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-4 { grid-template-columns: repeat(4, 1fr); }
+        .card {
+            background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 14px;
+            padding: 18px; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06); transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-3px); }
+        .card-title { font-weight: 700; font-size: 15px; color: var(--color-text); margin-bottom: 5px; }
+        .card-desc { font-size: 13px; color: var(--color-text-body); line-height: 1.55; }
+        .stat { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 14px; padding: 20px 14px; text-align: center; }
+        .stat-num {
+            font-size: clamp(26px, 3.2vw, 42px); font-weight: 800;
+            background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .stat-label { font-size: 12.5px; color: var(--color-mute); margin-top: 3px; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+        .badge-green { background: #D1FAE5; color: #047857; }
+        .badge-teal { background: #CCFBF1; color: #0F766E; }
+        .badge-amber { background: #FEF3C7; color: #B45309; }
+        .badge-slate { background: #E2E8F0; color: #475569; }
+        .check-list { text-align: left; list-style: none; display: grid; gap: 9px; }
+        .check-list li { display: flex; align-items: flex-start; gap: 9px; font-size: clamp(13px, 1.3vw, 16px); }
+        .check-list .tick {
+            flex-shrink: 0; width: 21px; height: 21px; border-radius: 50%; background: var(--color-success);
+            color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-top: 2px;
+        }
+        .table {
+            width: 100%; border-collapse: collapse; text-align: left; font-size: clamp(12.5px, 1.2vw, 15px);
+            background: var(--color-surface); border-radius: 12px; overflow: hidden; border: 1px solid var(--color-border);
+        }
+        .table th { background: #F1F5F9; color: var(--color-text); font-weight: 700; padding: 11px 16px; }
+        .table td { padding: 10px 16px; border-top: 1px solid var(--color-border); color: var(--color-text-body); }
+        .table tr:nth-child(even) td { background: #F8FAFC; }
+        .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--color-primary); font-weight: 700; }
+        .hero-note { font-size: clamp(12px, 1.1vw, 15px); color: var(--color-mute); }
+        .cover { background: var(--gradient-dark); }
+        .cover .slide-content { color: #fff; }
+        .cover h1 { -webkit-text-fill-color: #fff; background: none; color: #fff; }
+        .cover .brand-logo { background: rgba(255,255,255,0.15); box-shadow: none; }
+        .cover p, .cover .hero-note { color: #CFFAFE; }
+        .cover .divider { width: 60px; height: 3px; background: var(--color-primary-light); border-radius: 2px; }
+        .progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: var(--gradient-primary); transition: width 0.3s; z-index: 1000; }
+        .nav-controls {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; align-items: center; gap: 14px; z-index: 1000;
+            background: rgba(255,255,255,0.85); backdrop-filter: blur(6px); border: 1px solid var(--color-border);
+            border-radius: 999px; padding: 6px 12px; box-shadow: 0 4px 16px rgba(15,23,42,0.1);
+        }
+        .nav-btn { background: var(--color-primary); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 15px; font-weight: 700; transition: background 0.2s; }
+        .nav-btn:hover { background: var(--color-primary-dark); }
+        .slide-counter { color: var(--color-text-body); font-size: 13px; font-weight: 600; min-width: 50px; text-align: center; }
+        .hint { color: var(--color-mute); font-size: 11px; }
+        @media (max-width: 768px) {
+            .slide { padding: 26px 20px; }
+            .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 480px) { .grid-2 { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="slide-deck">
+        <!-- SLIDE 1: COVER -->
+        <div class="slide cover active">
+            <div class="slide-content">
+                <div class="brand">
+                    <div class="brand-logo">P</div>
+                    <div style="text-align:left">
+                        <div style="font-size:24px;font-weight:800">PESET</div>
+                        <div style="font-size:12px;color:#99F6E4;letter-spacing:1px">PEMANFAATAN ASET DAERAH</div>
+                    </div>
+                </div>
+                <div class="divider" style="margin-top:6px"></div>
+                <h1 class="slide-title">Pemanfaatan Aset<br>Daerah Kota Medan</h1>
+                <p>Portal digital pengelolaan &amp; pemanfaatan aset milik Pemerintah Kota Medan<br>— transparan, terbantu AI, dan melayani publik 24 jam.</p>
+                <p class="hero-note">Presentasi untuk Pemerintah Kota Medan / BPKAD &middot; 2026</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: MASALAH -->
+        <div class="slide">
+            <div class="slide-content">
+                <span class="kicker">Masalah</span>
+                <h2>Aset daerah banyak, tetapi tidak produktif</h2>
+                <div class="grid grid-3" style="max-width: 980px">
+                    <div class="card"><div class="card-title">Data tidak terlihat</div><div class="card-desc">Aset tanah &amp; gedung tersebar di berbagai OPD dan sulit diakses publik maupun calon mitra.</div></div>
+                    <div class="card"><div class="card-title">Aset menganggur</div><div class="card-desc">Aset berstatus idle tidak menghasilkan pendapatan bagi daerah.</div></div>
+                    <div class="card"><div class="card-title">Keputusan tanpa data</div><div class="card-desc">Menentukan aset "jadi apa" masih subjektif, tidak berdasar lokasi &amp; kebutuhan sekitar.</div></div>
+                    <div class="card"><div class="card-title">Belum ada pintu tanya</div><div class="card-desc">Masyarakat tidak tahu cara mengajukan dan ke mana harus bertanya.</div></div>
+                    <div class="card"><div class="card-title">Administrasi manual</div><div class="card-desc">Pengelolaan data aset manual, rawan ganda &amp; tidak konsisten.</div></div>
+                    <div class="card"><div class="card-title">Kurang transparan</div><div class="card-desc">Belum ada satu kanal resmi yang menampilkan status &amp; skema pemanfaatan aset.</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: SOLUSI -->
+        <div class="slide">
+            <div class="slide-content">
+                <span class="kicker">Solusi</span>
+                <h2>Satu portal, tiga sisi kebutuhan</h2>
+                <div class="grid grid-3" style="max-width: 1080px">
+                    <div class="card" style="border-top:4px solid var(--color-primary)">
+                        <div class="section-label">Untuk Publik</div>
+                        <div class="card-title" style="margin-top:8px">Katalog &amp; layanan terbuka</div>
+                        <div class="card-desc">Lihat aset yang tersedia, lokasi di peta, detail &amp; cara mengajukan. Tanya kapan saja lewat chat.</div>
+                    </div>
+                    <div class="card" style="border-top:4px solid #6366F1">
+                        <div class="section-label">Untuk Petugas</div>
+                        <div class="card-title" style="margin-top:8px">Kelola dalam satu panel</div>
+                        <div class="card-desc">9 modul pengelolaan aset, import Excel, dashboard, dan rekomendasi AI untuk keputusan pemanfaatan.</div>
+                    </div>
+                    <div class="card" style="border-top:4px solid var(--color-warning)">
+                        <div class="section-label">Untuk Daerah</div>
+                        <div class="card-title" style="margin-top:8px">Aset jadi produktif</div>
+                        <div class="card-desc">Aset idle diubah menjadi sumber pendapatan melalui skema pemanfaatan legal yang terkelola.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: FITUR PORTAL PUBLIK -->
+        <div class="slide">
+            <div class="slide-content">
+                <span class="kicker">Fitur Utama</span>
+                <h2>Portal publik — terbuka untuk semua</h2>
+                <div class="grid grid-2" style="max-width: 1080px">
+                    <div>
+                        <ul class="check-list">
+                            <li><span class="tick">&#10003;</span><div><b>Katalog aset</b> — daftar tanah &amp; gedung daerah dengan foto, status, dan OPD pengelola.</div></li>
+                            <li><span class="tick">&#10003;</span><div><b>Pencarian &amp; filter</b> — cari berdasarkan kata kunci, kategori (KIB), dan lokasi.</div></li>
+                            <li><span class="tick">&#10003;</span><div><b>Peta interaktif (GIS)</b> — lihat posisi aset secara visual.</div></li>
+                            <li><span class="tick">&#10003;</span><div><b>Detail aset lengkap</b> — foto, luas, nilai, kondisi, status, riwayat pemanfaatan.</div></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <ul class="check-list">
+                            <li><span class="tick">&#10003;</span><div><b>Rekomendasi AI</b> — saran pemanfaatan aset beserta alasannya.</div></li>
+                            <li><span class="tick">&#10003;</span><div><b>Live chat 24 jam</b> — tanya jawab langsung dengan bot &amp; petugas.</div></li>
+                            <li><span class="tick">&#10003;</span><div><b>Skema pemanfaatan</b> — informasi SEWA, KSP, BGS, dan skema legal lainnya.</div></li>
+                            <li><span class="tick">&#10003;</span><div><b>Responsif</b> — tampil rapi di komputer maupun ponsel.</div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: PANEL ADMIN -->
+        <div class="slide">
+            <div class="slide-content">
+                <span class="kicker">Panel Admin</span>
+                <h2>Sembilan modul pengelolaan terpadu</h2>
+                <div class="grid grid-3" style="max-width: 1080px">
+                    <div class="card"><div class="card-title">Aset</div><div class="card-desc">CRUD, foto, riwayat, import Excel</div></div>
+                    <div class="card"><div class="card-title">OPD</div><div class="card-desc">Organisasi Perangkat Daerah</div></div>
+                    <div class="card"><div class="card-title">Kategori Aset</div><div class="card-desc">Klasifikasi KIB A–F berhirarki</div></div>
+                    <div class="card"><div class="card-title">Jenis Pemanfaatan</div><div class="card-desc">Skema legal + dasar hukum</div></div>
+                    <div class="card"><div class="card-title">Pihak Ketiga</div><div class="card-desc">Data mitra &amp; badan usaha</div></div>
+                    <div class="card"><div class="card-title">Pemanfaatan</div><div class="card-desc">Kontrak, dokumen, auto-status</div></div>
+                    <div class="card"><div class="card-title">GIS Layer</div><div class="card-desc">Layer &amp; tampilan peta</div></div>
+                    <div class="card"><div class="card-title">POI Fasilitas</div><div class="card-desc">Kampus, mall, RS, tempat budaya</div></div>
+                    <div class="card"><div class="card-title">Users &amp; Roles</div><div class="card-desc">Akun &amp; hak akses (Super Admin)</div></div>
+                </div>
+                <p class="hero-note">+ Dashboard statistik &middot; Import aset massal dari Excel &middot; Template download</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: REKOMENDASI AI -->
+        <div class="slide">
+            <div class="slide-content">
+                <span class="kicker">Fitur Unggulan</span>
+                <h2>Rekomendasi AI — "aset ini cocok jadi apa?"</h2>
+                <div class="grid grid-3" style="max-width: 1080px">
+                    <div class="card">
+                        <div class="card-title">1. Ukur</div>
+                        <div class="card-desc">Sistem menghitung jarak nyata aset ke fasilitas terdekat (kampus, mall, sekolah, RS, tempat budaya) dalam radius 3 km.</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">2. Analisis</div>
+                        <div class="card-desc">AI (Google Gemini) menyusun usulan berbasis data aset: luas, kondisi, kategori, dan konteks sekitar.</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">3. Usulkan</div>
+                        <div class="card-desc">Hasil: jenis pemanfaatan legal, ide utama, alasan terukur, alternatif, perkiraan permintaan &amp; kontribusi.</div>
+                    </div>
+                </div>
+                <div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:12px;padding:14px 22px;max-width:900px;text-align:left">
+                    <div style="font-weight:700;color:#0F766E;margin-bottom:5px">Contoh keluaran rekomendasi</div>
+                    <div style="font-size:14px;color:var(--color-text-body)"><b>Jenis:</b> KSP &middot; <b>Ide utama:</b> Pusat kuliner &amp; UMKM — <b>Alasan:</b> 0,8 km dari kampus, 1,2 km dari mall, permintaan tinggi &middot; <b>Estimasi kontribusi:</b> Rp 40–60 juta/tahun</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: LIVE CHAT -->
+        <div class="slide">
+            <div class="slide-content">
+                <span class="kicker">Fitur Unggulan</span>
+                <h2>Live Chat + Chatbot 24 jam</h2>
+                <div class="grid grid-3" style="max-width: 1080px">
+                    <div class="card">
+                        <div class="card-title">Widget melayang</div>
+                        <div class="card-desc">Tombol chat di pojok kanan portal, langsung bisa digunakan tanpa login.</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Chatbot cerdas</div>
+                        <div class="card-desc">18 topik FAQ &middot; 265 kata kunci &middot; paham salah ketik (toleransi 1–2 huruf). Jawab otomatis 24 jam.</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Petugas online</div>
+                        <div class="card-desc">Pertanyaan sulit diteruskan ke petugas real-time: badge unread, toast, &amp; notifikasi browser.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: SKEMA PEMANFAATAN -->
+        <div class="slide">
+            <div class="slide-content">
+                <span class="kicker">Skema Legal</span>
+                <h2>Enam skema pemanfaatan aset yang didukung</h2>
+                <table class="table" style="max-width: 940px">
+                    <thead><tr><th>Kode</th><th>Nama</th><th>Keterangan</th></tr></thead>
+                    <tbody>
+                        <tr><td><b>SEWA</b></td><td>Sewa</td><td>Umumnya maksimal 5 tahun, kontribusi ke kas daerah</td></tr>
+                        <tr><td><b>PKP</b></td><td>Pinjam Pakai</td><td>Pemanfaatan tanpa sewa, jangka waktu tertentu</td></tr>
+                        <tr><td><b>KSP</b></td><td>Kerja Sama Pemanfaatan</td><td>Jangka lebih panjang, mitra ikut mengelola</td></tr>
+                        <tr><td><b>BGS</b></td><td>Bangun Guna Serah</td><td>Mitra membangun, kemudian diserahkan ke daerah</td></tr>
+                        <tr><td><b>BSG</b></td><td>Bangun Serah Guna</td><td>Daerah membangun, mitra mengelola untuk periode tertentu</td></tr>
+                        <tr><td><b>KSPI</b></td><td>KSP untuk Infrastruktur</td><td>Kerja sama khusus proyek infrastruktur</td></tr>
+                    </tbody>
+                </table>
+                <p class="hero-note">Setiap skema memuat dasar hukum &amp; ketentuan yang dapat dikelola di panel admin.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: ARSITEKTUR -->
+        <div class="slide">
+            <div class="slide-content">
+                <span class="kicker">Teknologi</span>
+                <h2>Arsitektur sistem yang aman &amp; siap bertumbuh</h2>
+                <div class="grid grid-4" style="max-width: 1100px">
+                    <div class="card"><div class="card-title">Frontend</div><div class="card-desc">Nuxt 3 (Vue) — portal &amp; panel admin responsif</div></div>
+                    <div class="card"><div class="card-title">Backend</div><div class="card-desc">Laravel 13 (REST API) — aman &amp; terstruktur</div></div>
+                    <div class="card"><div class="card-title">Database</div><div class="card-desc">PostgreSQL 15 — data terpusat &amp; ter-backup</div></div>
+                    <div class="card"><div class="card-title">Keamanan</div><div class="card-desc">Token autentikasi &amp; kontrol hak akses per peran</div></div>
+                    <div class="card"><div class="card-title">AI</div><div class="card-desc">Google Gemini — rekomendasi pemanfaatan aset</div></div>
+                    <div class="card"><div class="card-title">Real-time</div><div class="card-desc">WebSocket — live chat &amp; notifikasi instan</div></div>
+                    <div class="card"><div class="card-title">Deployment</div><div class="card-desc">Docker — mudah dipindah on-premise/cloud</div></div>
+                    <div class="card"><div class="card-title">Rate-limit</div><div class="card-desc">Pelindungan endpoint publik dari spam</div></div>
+                </div>
+                <p class="hero-note">Diagram detail alur data tersedia di dokumen <b>04-data-flow.md</b>.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: ANGKA KUNCI -->
+        <div class="slide">
+            <div class="slide-content">
+                <span class="kicker">Angka Kunci</span>
+                <h2>Sistem PESET dalam angka</h2>
+                <div class="grid grid-3" style="max-width: 980px">
+                    <div class="stat"><div class="stat-num">9</div><div class="stat-label">Modul pengelolaan aset</div></div>
+                    <div class="stat"><div class="stat-num">42</div><div class="stat-label">Titik fasilitas (POI) untuk AI</div></div>
+                    <div class="stat"><div class="stat-num">18</div><div class="stat-label">Topik FAQ chatbot</div></div>
+                    <div class="stat"><div class="stat-num">265</div><div class="stat-label">Kata kunci chatbot (anti-typo)</div></div>
+                    <div class="stat"><div class="stat-num">6</div><div class="stat-label">Skema pemanfaatan legal</div></div>
+                    <div class="stat"><div class="stat-num">24/7</div><div class="stat-label">Layanan chatbot</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: MVP SELESAI -->
+        <div class="slide">
+            <div class="slide-content">
+                <span class="kicker">Status</span>
+                <h2>MVP telah selesai &amp; berjalan</h2>
+                <div class="grid grid-2" style="max-width: 980px">
+                    <div>
+                        <ul class="check-list">
+                            <li><span class="tick">&#10003;</span><div>Portal publik + peta GIS + pencarian</div></li>
+                            <li><span class="tick">&#10003;</span><div>Panel admin 9 modul + dashboard</div></li>
+                            <li><span class="tick">&#10003;</span><div>Login berlapis (role per email domain)</div></li>
+                            <li><span class="tick">&#10003;</span><div>Import aset massal dari Excel</div></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <ul class="check-list">
+                            <li><span class="tick">&#10003;</span><div>Rekomendasi AI + 42 POI</div></li>
+                            <li><span class="tick">&#10003;</span><div>Live chat real-time + chatbot 24 jam</div></li>
+                            <li><span class="tick">&#10003;</span><div>Skema pemanfaatan legal (6 skema)</div></li>
+                            <li><span class="tick">&#10003;</span><div>Upload foto &amp; dokumen pemanfaatan</div></li>
+                            <li><span class="tick">&#10003;</span><div>Ekspor laporan Excel + statistik &amp; grafik</div></li>
+                            <li><span class="tick">&#10003;</span><div>Audit trail field-level (siapa, kapan, dari-ke)</div></li>
+                        </ul>
+                    </div>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+                    <span class="badge badge-green">Sistem inti selesai</span>
+                    <span class="badge badge-teal">Siap diisi data nyata</span>
+                    <span class="badge badge-teal">Siap dipakai OPD/BPKAD</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 12: ROADMAP -->
+        <div class="slide">
+            <div class="slide-content">
+                <span class="kicker">Roadmap</span>
+                <h2>Jalur pengembangan selanjutnya</h2>
+                <div class="grid grid-3" style="max-width: 1080px">
+                    <div class="card" style="border-top:4px solid var(--color-primary)">
+                        <div class="section-label">Fase 2 &middot; Operasional</div>
+                        <div class="card-desc" style="margin-top:10px">
+                            <span style="color:#059669;font-weight:600">&check; Ekspor &amp; laporan statistik</span><br>
+                            <span style="color:#059669;font-weight:600">&check; Audit trail diperdalam (field-level)</span><br>
+                            &bull; Notifikasi email/SMS <span class="badge badge-slate" style="margin-left:4px">saran</span><br>
+                            &bull; Koordinat presisi lapangan <span class="badge badge-slate" style="margin-left:4px">saran</span>
+                        </div>
+                    </div>
+                    <div class="card" style="border-top:4px solid #6366F1">
+                        <div class="section-label">Fase 3 &middot; Integrasi</div>
+                        <div class="card-desc" style="margin-top:10px">
+                            &bull; Integrasi e-billing / kas daerah<br>
+                            &bull; E-lelang terintegrasi<br>
+                            &bull; Integrasi SIMDA / aplikasi existing<br>
+                            &bull; API publik untuk mitra
+                        </div>
+                    </div>
+                    <div class="card" style="border-top:4px solid var(--color-warning)">
+                        <div class="section-label">Fase 4 &middot; Ekspansi</div>
+                        <div class="card-desc" style="margin-top:10px">
+                            &bull; AI lebih dalam (multi-aset, draft kontrak)<br>
+                            &bull; Aplikasi mobile Android/iOS<br>
+                            &bull; Multi-bahasa<br>
+                            &bull; Peta kota interaktif penuh
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+                    <span class="badge badge-green">Selesai</span>
+                    <span class="badge badge-amber">Disarankan berikutnya: notifikasi &amp; presisi GIS</span>
+                    <span class="badge badge-slate">Fase 3/4 sesuai kebutuhan &amp; anggaran</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 13: KEUNGGULAN -->
+        <div class="slide">
+            <div class="slide-content">
+                <span class="kicker">Keunggulan</span>
+                <h2>Mengapa PESET</h2>
+                <div class="grid grid-3" style="max-width: 1080px">
+                    <div class="card"><div class="card-title">Berbasis data, bukan tebakan</div><div class="card-desc">Rekomendasi AI didukung pengukuran jarak nyata ke fasilitas sekitar.</div></div>
+                    <div class="card"><div class="card-title">Transparan untuk publik</div><div class="card-desc">Aset &amp; statusnya bisa diakses siapa saja, kapan saja.</div></div>
+                    <div class="card"><div class="card-title">Efisien untuk petugas</div><div class="card-desc">Import massal, dashboard, dan rekomendasi otomatis menghemat waktu.</div></div>
+                    <div class="card"><div class="card-title">Biaya terkendali</div><div class="card-desc">AI hanya aktif saat diminta; publik &amp; chatbot tanpa biaya AI.</div></div>
+                    <div class="card"><div class="card-title">Responsif &amp; ramah pengguna</div><div class="card-desc">Desain besar &amp; jelas, ramah PNS non-teknis, tampil di HP.</div></div>
+                    <div class="card"><div class="card-title">Modular &amp; siap bertumbuh</div><div class="card-desc">Arsitektur bersih — fitur baru mudah ditambahkan bertahap.</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 14: PENUTUP -->
+        <div class="slide cover">
+            <div class="slide-content">
+                <div class="brand">
+                    <div class="brand-logo">P</div>
+                    <div style="text-align:left">
+                        <div style="font-size:22px;font-weight:800">PESET</div>
+                        <div style="font-size:12px;color:#99F6E4;letter-spacing:1px">PEMANFAATAN ASET DAERAH</div>
+                    </div>
+                </div>
+                <div class="divider" style="margin-top:6px"></div>
+                <h1 class="slide-title">Terima Kasih</h1>
+                <p>Mengubah aset menganggur menjadi peluang pendapatan daerah.<br>Sistem selesai, siap diisi data nyata, dan siap bertumbuh bersama kota.</p>
+                <div style="margin-top:8px;color:#CFFAFE;font-size:15px">
+                    <div><b>BPKAD Kota Medan</b></div>
+                    <div>Jl. Kapten Maulana Lubis No. 2, Medan</div>
+                    <div>bpkad@pemkomedan.go.id</div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /.slide-deck -->
+
+    <div class="nav-controls">
+        <button class="nav-btn" onclick="prevSlide()">&larr;</button>
+        <span class="slide-counter"><span id="current">1</span> / <span id="total">14</span></span>
+        <button class="nav-btn" onclick="nextSlide()">&rarr;</button>
+    </div>
+
+    <script>
+        let current = 1;
+        const total = document.querySelectorAll('.slide').length;
+        document.getElementById('total').textContent = total;
+
+        function showSlide(n) {
+            if (n < 1) n = 1;
+            if (n > total) n = total;
+            current = n;
+            document.querySelectorAll('.slide').forEach((s, i) => {
+                s.classList.toggle('active', i === n - 1);
+            });
+            document.getElementById('current').textContent = n;
+            document.getElementById('progressBar').style.width = (n / total * 100) + '%';
+        }
+
+        function nextSlide() { showSlide(current + 1); }
+        function prevSlide() { showSlide(current - 1); }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown' || e.key === 'Home') { e.preventDefault(); nextSlide(); }
+            if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'End') { e.preventDefault(); prevSlide(); }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.nav-controls')) nextSlide();
+        });
+
+        showSlide(1);
+    </script>
+</body>
+</html>

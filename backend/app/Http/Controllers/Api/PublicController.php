@@ -41,6 +41,18 @@ class PublicController extends Controller
         ]);
     }
 
+    public function statistik(): JsonResponse
+    {
+        $total = Aset::whereHas('kategori', fn ($q) => $q->whereIn('kode_kib', ['KIB A', 'KIB C']))->count();
+        $nilai = Aset::whereHas('kategori', fn ($q) => $q->whereIn('kode_kib', ['KIB A', 'KIB C']))->sum('nilai_perolehan');
+        $tersedia = Aset::where('status', 'Idle')
+            ->whereHas('kategori', fn ($q) => $q->whereIn('kode_kib', ['KIB A', 'KIB C']))->count();
+        $opd = Aset::whereHas('kategori', fn ($q) => $q->whereIn('kode_kib', ['KIB A', 'KIB C']))
+            ->distinct('opd_id')->count('opd_id');
+
+        return response()->json(['data' => compact('total', 'nilai', 'tersedia', 'opd')]);
+    }
+
     public function rekomendasi(string $id): JsonResponse
     {
         $aset = Aset::findOrFail($id);

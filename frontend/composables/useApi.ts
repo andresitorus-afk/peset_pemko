@@ -61,5 +61,22 @@ export function useApi() {
     return res.json()
   }
 
-  return { get, post, put, del, upload, baseURL }
+  async function download(path: string, filename: string): Promise<void> {
+    const h: Record<string, string> = { 'Accept': 'application/octet-stream' }
+    const token = getToken()
+    if (token) h['Authorization'] = `Bearer ${token}`
+    const res = await fetch(`${baseURL}/api${path}`, { headers: h })
+    if (!res.ok) { const e = await res.json(); throw new Error(e.message || JSON.stringify(e)) }
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  return { get, post, put, del, upload, download, baseURL }
 }

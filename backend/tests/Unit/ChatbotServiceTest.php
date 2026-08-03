@@ -54,4 +54,28 @@ class ChatbotServiceTest extends TestCase
     {
         $this->assertNull(ChatbotService::match('pertanyaan acak tidak dikenal', $this->faqs));
     }
+
+    public function test_match_tahan_typo_satu_huruf(): void
+    {
+        $result = ChatbotService::match('Bagaimana cara sswa aset?', $this->faqs);
+        $this->assertSame('a', $result['id']);
+    }
+
+    public function test_match_tahan_typo_kata_istilah(): void
+    {
+        $result = ChatbotService::match('apa arti idla', $this->faqs);
+        $this->assertSame('b', $result['id']);
+    }
+
+    public function test_match_tahan_typo_huruf_doang(): void
+    {
+        $result = ChatbotService::match('cek ttarf sewa dong', $this->faqs);
+        $this->assertSame('a', $result['id']);
+    }
+
+    public function test_match_keyword_tunggal_tidak_pas(): void
+    {
+        $result = ChatbotService::match('au', $this->faqs);
+        $this->assertNull($result);
+    }
 }

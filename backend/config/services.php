@@ -45,4 +45,9 @@ return [
         'greeting' => 'Halo! Selamat datang di Live Chat PESET. Kami siap membantu Anda terkait pemanfaatan aset daerah. Silakan ketik pertanyaan Anda.',
     ],
 
+    'chat' => [
+        // ponytail: auto-close dijalankan saat sesi dibaca (bukan cron); 10 menit tanpa pesan visitor → sesi tertutup.
+        'auto_close_minutes' => env('CHAT_AUTO_CLOSE_MINUTES', 10),
+    ],
+
 ];

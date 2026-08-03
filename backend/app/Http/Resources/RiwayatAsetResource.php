@@ -8,6 +8,7 @@ class RiwayatAsetResource extends JsonResource
         return [
             'id' => $this->id, 'aset_id' => $this->aset_id, 'aksi' => $this->aksi,
             'deskripsi' => $this->deskripsi,
+            'detail' => $this->detail,
             'user' => new UserResource($this->whenLoaded('user')),
             'created_at' => $this->created_at,
         ];

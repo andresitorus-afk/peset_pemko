@@ -81,7 +81,9 @@ class PemanfaatanController extends Controller
             'catatan' => 'nullable|string',
         ]);
 
+        $old = $pemanfaatan->getAttributes();
         $pemanfaatan->update($validated);
+        $this->catatPemanfaatan($pemanfaatan, $request, 'Pemeliharaan', 'Pemanfaatan diperbarui', $old);
         return new PemanfaatanResource($pemanfaatan->fresh(['jenis', 'pihakKetiga']));
     }
 
@@ -106,6 +108,26 @@ class PemanfaatanController extends Controller
     {
         return \App\Http\Resources\DokumenPemanfaatanResource::collection(
             $pemanfaatan->dokumen()->orderByDesc('created_at')->paginate(15)
+        );
+    }
+
+    protected function catatPemanfaatan(
+        Pemanfaatan $pemanfaatan,
+        Request $request,
+        string $aksi,
+        string $deskripsi,
+        array $old = [],
+    ): void {
+        if (!$pemanfaatan->aset) return;
+        $old = $old ?: array_fill_keys($pemanfaatan->getFillable(), null);
+        \App\Services\AuditTrail::catat(
+            $pemanfaatan->aset,
+            $pemanfaatan,
+            $aksi,
+            $old,
+            $pemanfaatan->fresh()->getAttributes(),
+            $request->user()->id,
+            $deskripsi,
         );
     }
 }

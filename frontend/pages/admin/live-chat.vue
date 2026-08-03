@@ -190,4 +190,7 @@ function timeAgo(iso?: string) {
 }
 
 loadSessions()
+let sessionsTimer: ReturnType<typeof setInterval>
+onMounted(() => { sessionsTimer = setInterval(loadSessions, 15000) })
+onUnmounted(() => clearInterval(sessionsTimer))
 </script>

@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('poi', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
             $table->string('nama');
-            $table->string('tipe')->comment('kampus, sekolah, mal, pasar, rumah_sakit, puskesmas, kantor, perumahan, stasiun, lainnya');
+            $table->string('tipe')->comment('kampus, sekolah, mal, pasar, rumah_sakit, puskesmas, kantor, perumahan, stasiun, tempat_budaya, lainnya');
             $table->string('alamat')->nullable();
             $table->decimal('latitude', 10, 7);
             $table->decimal('longitude', 10, 7);

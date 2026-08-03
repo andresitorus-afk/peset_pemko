@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\RekomendasiAiController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\ChatbotFaqController;
 use App\Http\Controllers\Api\PublicChatController;
+use App\Http\Controllers\Api\LaporanController;
 use App\Http\Controllers\Api\BroadcastAuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::get('/public/aset', [\App\Http\Controllers\Api\PublicController::class, 'aset']);
+Route::get('/public/statistik', [\App\Http\Controllers\Api\PublicController::class, 'statistik']);
 Route::get('/public/aset/{id}', [\App\Http\Controllers\Api\PublicController::class, 'asetDetail']);
 Route::get('/public/aset/{id}/rekomendasi', [\App\Http\Controllers\Api\PublicController::class, 'rekomendasi']);
 
@@ -72,6 +74,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/riwayat-aset', [RiwayatAsetController::class, 'index']);
     Route::post('/riwayat-aset', [RiwayatAsetController::class, 'store']);
+
+    Route::get('/laporan/statistik', [LaporanController::class, 'statistik']);
+    Route::get('/laporan/aset', [LaporanController::class, 'exportAset']);
+    Route::get('/laporan/pemanfaatan', [LaporanController::class, 'exportPemanfaatan']);
+    Route::get('/laporan/master', [LaporanController::class, 'exportMaster']);
 
     Route::post('/rekomendasi-ai/{aset}', [RekomendasiAiController::class, 'store']);
     Route::get('/rekomendasi-ai/{aset}', [RekomendasiAiController::class, 'index']);

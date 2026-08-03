@@ -17,6 +17,9 @@ class RiwayatAsetController extends Controller
 
         if ($request->aset_id) $query->where('aset_id', $request->aset_id);
         if ($request->aksi) $query->where('aksi', $request->aksi);
+        if ($request->user_id) $query->where('user_id', $request->user_id);
+        if ($request->tanggal_dari) $query->whereDate('created_at', '>=', $request->tanggal_dari);
+        if ($request->tanggal_sampai) $query->whereDate('created_at', '<=', $request->tanggal_sampai);
 
         return RiwayatAsetResource::collection(
             $query->orderByDesc('created_at')->paginate($request->get('per_page', 15))
