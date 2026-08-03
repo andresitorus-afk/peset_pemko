@@ -348,9 +348,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
               </svg>
             </button>
-            <div v-show="faqOpen === i" class="px-5 sm:px-6 pb-5 sm:pb-6 pl-16">
-              <p class="text-sm text-slate-500 leading-relaxed">{{ faq.a }}</p>
-            </div>
+            <Transition name="faq">
+              <div v-show="faqOpen === i" class="faq-body">
+                <div class="overflow-hidden px-5 sm:px-6 pb-5 sm:pb-6 pl-16">
+                  <p class="text-sm text-slate-500 leading-relaxed">{{ faq.a }}</p>
+                </div>
+              </div>
+            </Transition>
           </div>
         </div>
       </div>
@@ -943,11 +947,32 @@ async function openDetail(item: any) {
     }
     await nextTick()
     initMap()
-    fetch(`${apiBase}/api/public/aset/${item.id}/rekomendasi`)
-      .then(r => r.json())
-      .then(j => { detailRekomendasi.value = j.data || null })
-      .catch(() => { detailRekomendasi.value = null })
+    fetchRekomendasi(item.id)
   } catch {}
+}
+
+let rekomendasiTimer: ReturnType<typeof setTimeout> | null = null
+
+function fetchRekomendasi(id: string, attempt = 1) {
+  if (rekomendasiTimer) clearTimeout(rekomendasiTimer)
+  fetch(`${apiBase}/api/public/aset/${id}/rekomendasi`)
+    .then(r => r.json())
+    .then(j => {
+      if (j.data) {
+        detailRekomendasi.value = j.data
+      } else if (attempt < 5) {
+        rekomendasiTimer = setTimeout(() => fetchRekomendasi(id, attempt + 1), 2000)
+      } else {
+        detailRekomendasi.value = null
+      }
+    })
+    .catch(() => {
+      if (attempt < 5) {
+        rekomendasiTimer = setTimeout(() => fetchRekomendasi(id, attempt + 1), 2000)
+      } else {
+        detailRekomendasi.value = null
+      }
+    })
 }
 
 watch(detailGis, (v) => { if (v) nextTick(() => initMap()) })
@@ -989,6 +1014,22 @@ html {
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+.faq-body {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+.faq-body > div {
+  min-height: 0;
+}
+.faq-enter-active,
+.faq-leave-active {
+  transition: grid-template-rows 0.4s ease, opacity 0.4s ease;
+}
+.faq-enter-from,
+.faq-leave-to {
+  grid-template-rows: 0fr;
+  opacity: 0;
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;

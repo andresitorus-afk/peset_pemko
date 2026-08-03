@@ -26,7 +26,7 @@
 - **Frontend:** Nuxt 3 (Vue) — responsif, tampil di komputer & HP
 - **Backend:** Laravel 13 (REST API) — aman, terstruktur
 - **Database:** PostgreSQL 15
-- **AI:** Google Gemini untuk rekomendasi pemanfaatan aset
+- **AI:** Google Gemini untuk rekomendasi pemanfaatan aset (otomatis saat aset disimpan/diubah)
 - **Real-time:** Live Chat (WebSocket)
 - **Deployment:** Docker
 

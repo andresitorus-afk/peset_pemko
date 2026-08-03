@@ -55,7 +55,7 @@ flowchart TB
 
 ---
 
-## 2. Alur Publik — Melihat Aset & Rekomendasi
+## 2. Alur Publik — Landing, Melihat Aset & Rekomendasi
 
 ```mermaid
 sequenceDiagram
@@ -64,7 +64,13 @@ sequenceDiagram
     participant API as Backend (Laravel)
     participant DB as PostgreSQL
 
-    V->>FE: Buka portal / cari aset
+    V->>FE: Buka portal (landing)
+    FE->>API: GET /api/public/statistik
+    API->>DB: Hitung total/nilai/tersedia/OPD
+    DB-->>API: Statistik
+    API-->>FE: Angka landing (count-up)
+
+    V->>FE: Cari aset
     FE->>API: GET /api/public/aset
     API->>DB: Query aset (filter, paginate)
     DB-->>API: Daftar aset
@@ -87,7 +93,7 @@ sequenceDiagram
 
 ---
 
-## 3. Alur Rekomendasi AI (Tombol di Panel Admin)
+## 3. Alur Rekomendasi AI (Otomatis saat Simpan Aset)
 
 ```mermaid
 sequenceDiagram
@@ -97,8 +103,11 @@ sequenceDiagram
     participant DB as PostgreSQL
     participant GEM as Gemini API
 
-    A->>FE: Klik "Rekomendasi AI" pada aset
-    FE->>API: POST /api/rekomendasi-ai/{aset}
+    A->>FE: Simpan / ubah aset (tambah/edit)
+    FE->>API: POST/PUT /api/aset
+    API->>DB: Simpan aset
+    API-->>FE: 200 OK (respons terkirim duluan)
+    API->>API: Dispatch job GenerateRekomendasiAset (afterResponse)
     API->>DB: Load aset + kategori + koordinat
     API->>DB: Ambil semua POI aktif
     API->>API: Hitung jarak (haversine), ambil ≤3 km
@@ -107,12 +116,10 @@ sequenceDiagram
     GEM-->>API: JSON rekomendasi
     API->>API: Parse & validasi struktur
     API->>DB: Simpan ke rekomendasi_ai (sukses/gagal)
-    API-->>FE: Hasil rekomendasi
-    FE-->>A: Modal hasil (ide, alasan, alternatif)
 ```
 
 **Alur cadangan (fallback):**
-- Gemini timeout/error → simpan `status=gagal` + pesan → frontend tampilkan notifikasi error.
+- Gemini timeout/error → simpan `status=gagal` + pesan (transparan di detail publik).
 - Aset tanpa koordinat → prompt tanpa blok POI (tetap jalan).
 
 ---
@@ -176,6 +183,8 @@ flowchart LR
     UP --> VX["Validasi & import massal"]
     VX --> DB[("PostgreSQL")]
     CRUD --> DB
+    CRUD --> AI["Auto-generate rekomendasi<br/>(latar belakang)"]
+    AI --> DB
 ```
 
 ---
@@ -213,7 +222,7 @@ flowchart TB
     subgraph Proses["Proses Inti"]
         P1["Kelola & simpan data aset"]
         P2["Sinkron status pemanfaatan"]
-        P3["Rekomendasi AI (Gemini + POI)"]
+        P3["Rekomendasi AI (Gemini + POI, otomatis saat simpan)"]
         P4["Chatbot FAQ + anti-typo"]
     end
 

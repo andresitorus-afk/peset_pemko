@@ -44,6 +44,7 @@ PESET adalah portal digital resmi Pemerintah Kota Medan yang mempertemukan **pen
 
 | Fitur | Deskripsi | Prioritas |
 |---|---|---|
+| Landing page (v2) | Hero, statistik aset real-time (jumlah, nilai, tersedia, OPD), aset unggulan, alur & FAQ | P0 |
 | Katalog aset | Daftar tanah/gedung daerah dengan foto, status, OPD, alamat | P0 |
 | Pencarian & filter | Cari berdasarkan kata kunci, kategori (KIB), lokasi | P0 |
 | Peta (GIS) | Lihat aset pada peta interaktif | P0 |
@@ -67,11 +68,11 @@ PESET adalah portal digital resmi Pemerintah Kota Medan yang mempertemukan **pen
 | POI (Titik Fasilitas) | Data kampus, mall, sekolah, RS, tempat budaya (untuk AI) | P1 |
 | Users & Roles | Kelola akun & peran (khusus Super Admin) | P0 |
 | Live Chat (staff) | Balas chat publik, kelola FAQ, badge unread | P0 |
-| Rekomendasi AI (generate) | Tombol generate rekomendasi per aset | P0 |
+| Rekomendasi AI (otomatis) | Dibuat otomatis di latar belakang saat aset disimpan/diubah (tanpa tombol) | P0 |
 
 ### C. Fitur Unggulan
 
-1. **Rekomendasi AI** — klik satu tombol → sistem menghitung fasilitas terdekat (≤3 km) → AI memberi usulan: jenis pemanfaatan, ide utama, alasan, alternatif, estimasi kontribusi.
+1. **Rekomendasi AI otomatis** — begitu aset disimpan/diubah, sistem menghitung fasilitas terdekat (≤3 km) → AI memberi usulan: jenis pemanfaatan, ide utama, alasan, alternatif, estimasi kontribusi. Hasil langsung tampil di detail aset portal publik.
 2. **Live Chat real-time + Chatbot** — bot menjawab 24 jam dari FAQ; jika tidak cocok, diteruskan ke petugas (badge + notifikasi real-time). Chatbot paham salah ketik (toleransi 1–2 huruf).
 
 ---
@@ -96,7 +97,7 @@ Petugas login
   → pilih modul Aset
   → tambah/edit aset (atau import Excel)
   → melengkapi foto & koordinat
-  → (opsional) klik "Rekomendasi AI" untuk usulan pemanfaatan
+  → rekomendasi AI dibuat otomatis di latar belakang
   → bila aset dimanfaatkan → buat record Pemanfaatan
   → status aset otomatis berubah jadi "Dimanfaatkan"
 ```
@@ -142,7 +143,7 @@ Pengunjung bertanya
 3. Saat record pemanfaatan aktif dibuat, **status aset berubah otomatis** menjadi "Dimanfaatkan".
 4. Chatbot menjawab pertanyaan umum dan **meneruskan ke petugas** saat tidak tahu — petugas menerima notifikasi.
 5. Hanya **Super Admin** yang dapat mengelola Users & Roles.
-6. Rekomendasi AI menyertakan **fasilitas terdekat yang terukur** (bukan tebakan).
+6. Rekomendasi AI dibuat **otomatis** saat aset disimpan/diubah dan menyertakan **fasilitas terdekat yang terukur** (bukan tebakan).
 
 ---
 

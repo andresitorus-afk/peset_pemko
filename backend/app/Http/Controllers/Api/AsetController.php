@@ -48,6 +48,8 @@ class AsetController extends Controller
 
         $this->handleGis($request, $aset);
 
+        \App\Jobs\GenerateRekomendasiAset::dispatch($aset, $request->user()?->id)->afterResponse();
+
         return (new AsetResource($aset->load(['opd', 'kategori'])))
             ->response()->setStatusCode(201);
     }
@@ -82,6 +84,8 @@ class AsetController extends Controller
         \App\Services\AuditTrail::catat($aset, $aset, 'Pemeliharaan', $old, $aset->fresh()->getAttributes(), $request->user()->id);
 
         $this->handleGis($request, $aset);
+
+        \App\Jobs\GenerateRekomendasiAset::dispatch($aset->fresh(), $request->user()?->id)->afterResponse();
 
         return new AsetResource($aset->fresh(['opd', 'kategori']));
     }

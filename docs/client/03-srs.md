@@ -106,10 +106,11 @@ Diagram lengkap: [04-data-flow.md](./04-data-flow.md).
 - Dikelola admin; dipakai menghitung jarak aset ke fasilitas.
 
 ### 4.10 Rekomendasi AI (Gemini)
-- **Alur:** klik tombol → backend hitung POI terdekat (≤3 km, haversine) → susun prompt (data aset + POI + peta kebutuhan + jenis legal) → panggil Gemini → simpan hasil → tampilkan.
+- **Alur:** aset disimpan/diubah → backend dispatch job rekomendasi **otomatis di latar belakang** (setelah respons terkirim, tanpa menunggu) → hitung POI terdekat (≤3 km, haversine) → susun prompt (data aset + POI + peta kebutuhan + jenis legal) → panggil Gemini → simpan hasil.
 - **Output:** `jenis_pemanfaatan`, `ide_utama`, `alasan[]`, `alternatif[]`, `perkiraan_permintaan`, `potensi_kontribusi`, `catatan_legal`.
-- Publik membaca hasil **terakhir yang sukses** dari DB (tanpa panggil AI → nol biaya per kunjungan).
+- Publik membaca hasil **terakhir yang sukses** dari DB (tanpa panggil AI → nol biaya per kunjungan); detail publik otomatis menampilkan hasil terbaru.
 - Error Gemini → status `gagal` + pesan; tidak menghentikan sistem.
+- Tidak ada tombol generate di panel admin; hasil dibuat otomatis saat aset dibuat/diubah.
 
 ### 4.11 Live Chat + Chatbot
 - **Publik:** widget melayang → buat sesi (anonim) → kirim pesan → bot menjawab.
@@ -154,6 +155,7 @@ Diagram lengkap: [04-data-flow.md](./04-data-flow.md).
 | GET | `/api/public/aset` | Daftar aset publik (cari/filter/paginate) |
 | GET | `/api/public/aset/{id}` | Detail aset |
 | GET | `/api/public/aset/{id}/rekomendasi` | Rekomendasi terakhir |
+| GET | `/api/public/statistik` | Statistik landing: total/nilai/tersedia/OPD |
 | POST | `/api/public/chat/sessions` | Buat sesi chat |
 | GET | `/api/public/chat/{session}/messages` | Riwayat chat |
 | POST | `/api/public/chat/{session}/messages` | Kirim pesan (bot merespons) |
@@ -175,7 +177,7 @@ Diagram lengkap: [04-data-flow.md](./04-data-flow.md).
 ## 8. Keandalan & Performa
 
 - **Fallback chat:** bila WebSocket putus, pesan tetap tampil via polling riwayat & unread-count.
-- **Biaya AI terkendali:** AI hanya dipanggil saat admin menekan tombol; publik hanya baca hasil tersimpan.
+- **Biaya AI terkendali:** AI dipicu otomatis saat aset disimpan/diubah (di latar belakang); publik hanya baca hasil tersimpan — nol biaya per kunjungan.
 - **Sinkronisasi real-time:** broadcast async (tanpa antrian worker tambahan).
 
 ---

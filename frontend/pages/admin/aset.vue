@@ -19,13 +19,6 @@
       <template #cell-opd.nama_opd="{ row }">
         {{ row.opd?.nama_opd || '—' }}
       </template>
-      <template #cell-ai="{ row }">
-        <button type="button" class="px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold hover:bg-violet-100 transition-colors"
-          @click="openRekomendasi(row)">
-          <span v-if="aiLoadingId === row.id">Menunggu AI...</span>
-          <span v-else>Rekomendasi AI</span>
-        </button>
-      </template>
     </AdminDataTable>
 
     <AdminFormModal
@@ -149,49 +142,6 @@
         <UiButton variant="danger" @click="doDelete" :disabled="deleting">{{ deleting ? 'Menghapus...' : 'Hapus' }}</UiButton>
       </div>
     </UiModal>
-
-    <UiModal :show="aiModal" title="Rekomendasi AI Pemanfaatan" @close="aiModal = false">
-      <div v-if="aiHasil" class="space-y-5">
-        <div class="flex items-start justify-between gap-3">
-          <p class="text-lg font-bold text-slate-900 leading-snug">{{ aiHasil.ide_utama }}</p>
-          <span class="flex-shrink-0 px-3 py-1 rounded-full bg-teal-100 text-teal-700 text-xs font-bold">{{ aiHasil.jenis_pemanfaatan }}</span>
-        </div>
-        <div>
-          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Alasan</p>
-          <ul class="space-y-2">
-            <li v-for="(a, i) in aiHasil.alasan" :key="i" class="flex gap-2 text-sm text-slate-700">
-              <span class="text-teal-600 mt-0.5">•</span><span>{{ a }}</span>
-            </li>
-          </ul>
-        </div>
-        <div v-if="aiHasil.alternatif && aiHasil.alternatif.length">
-          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Alternatif</p>
-          <div class="space-y-2">
-            <div v-for="(alt, i) in aiHasil.alternatif" :key="i" class="bg-slate-50 rounded-lg p-3">
-              <p class="text-sm font-semibold text-slate-800">{{ alt.ide }}</p>
-              <p class="text-xs text-slate-500 mt-1">{{ alt.alasan }}</p>
-            </div>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div class="bg-slate-50 rounded-lg p-3">
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Perkiraan Permintaan</p>
-            <p class="text-sm text-slate-700 mt-1">{{ aiHasil.perkiraan_permintaan }}</p>
-          </div>
-          <div class="bg-slate-50 rounded-lg p-3">
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Potensi Kontribusi</p>
-            <p class="text-sm text-slate-700 mt-1">{{ aiHasil.potensi_kontribusi }}</p>
-          </div>
-        </div>
-        <div v-if="aiHasil.catatan_legal">
-          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Catatan Legal</p>
-          <p class="text-sm text-slate-600 bg-amber-50 rounded-lg p-3">{{ aiHasil.catatan_legal }}</p>
-        </div>
-        <p class="text-[11px] text-slate-400">Dihasilkan oleh AI (Google Gemini). Wajib diverifikasi pejabat sebelum diputuskan.</p>
-      </div>
-      <p v-else-if="aiError" class="text-sm text-red-600">{{ aiError }}</p>
-      <p v-else class="text-sm text-slate-500">Memproses...</p>
-    </UiModal>
   </div>
 </template>
 
@@ -213,26 +163,6 @@ const editing = ref<any | null>(null)
 const deleteModal = ref(false)
 const deleting = ref(false)
 const deletingItem = ref<any | null>(null)
-const aiLoadingId = ref<string | null>(null)
-const aiModal = ref(false)
-const aiHasil = ref<any | null>(null)
-const aiError = ref('')
-
-async function openRekomendasi(row: any) {
-  aiLoadingId.value = row.id
-  aiError.value = ''
-  aiHasil.value = null
-  try {
-    const res = await api.post(`/rekomendasi-ai/${row.id}`)
-    aiHasil.value = res.data
-  } catch (e: any) {
-    aiError.value = e.message
-    toast.show('Gagal memuat rekomendasi: ' + e.message, 'error')
-  } finally {
-    aiLoadingId.value = null
-  }
-  if (aiHasil.value || aiError.value) aiModal.value = true
-}
 
 const opdList = ref<any[]>([])
 const kategoriList = ref<any[]>([])
@@ -311,7 +241,6 @@ const columns = [
   { key: 'opd.nama_opd', label: 'OPD' },
   { key: 'kondisi', label: 'Kondisi' },
   { key: 'status', label: 'Status' },
-  { key: 'ai', label: 'AI' },
 ]
 
 function fotoUrl(path: string) {

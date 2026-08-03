@@ -18,20 +18,20 @@ Pemerintah Kota Medan memiliki banyak aset daerah (tanah & gedung) yang **mengan
 
 **PESET** — satu portal digital resmi Pemko Medan yang mempertemukan sisi pemerintah (pengelola aset) dan sisi publik (calon mitra):
 
-1. **Katalog aset publik** — daftar tanah/gedung daerah dengan lokasi, status, foto, dan peta (GIS), bisa dicari & difilter. Transparan dan mudah diakses siapa saja.
+1. **Katalog aset publik** — landing page baru: ringkasan statistik aset real-time (jumlah, nilai, aset tersedia, jumlah OPD), aset unggulan, dan daftar tanah/gedung daerah dengan lokasi, status, foto, dan peta (GIS), bisa dicari & difilter. Transparan dan mudah diakses siapa saja.
 2. **Panel admin lengkap** — 9 modul pengelolaan (OPD, kategori aset, aset, pemanfaatan, pihak ketiga, dll.) dengan kontrol hak akses per peran (Super Admin / Admin / Petugas).
-3. **Rekomendasi AI** — analisis otomatis: aset ini cocok dijadikan apa (sewa, KSP, BGS, dst.) berdasarkan data aset + fasilitas di sekitarnya (kampus, mall, sekolah, rumah sakit, tempat budaya), lengkap dengan alasan yang terukur.
+3. **Rekomendasi AI otomatis** — setiap aset disimpan/diubah oleh petugas, sistem langsung membuat rekomendasi di latar belakang: aset ini cocok dijadikan apa (sewa, KSP, BGS, dst.) berdasarkan data aset + fasilitas di sekitarnya (kampus, mall, sekolah, rumah sakit, tempat budaya), lengkap dengan alasan yang terukur. Hasilnya langsung tampil di detail aset portal publik — tanpa tombol, tanpa langkah tambahan.
 4. **Live Chat + Chatbot 24 jam** — pengunjung bisa bertanya kapan saja; bot menjawab otomatis dari 18 topik FAQ, dan jika tidak terjawab diteruskan ke petugas secara real-time.
 
 ## 3. Hasil yang Sudah Bekerja (MVP Selesai)
 
 | Area | Status |
 |---|---|
-| Portal publik (katalog aset + peta GIS + pencarian + filter) | ✅ Selesai |
+| Portal publik (landing v2 + katalog aset + peta GIS + pencarian + filter + statistik) | ✅ Selesai |
 | Panel admin 9 modul + dashboard statistik | ✅ Selesai |
 | Login berlapis sesuai peran (email `@pemkomedan.go.id`) | ✅ Selesai |
 | Import aset dari Excel | ✅ Selesai |
-| Rekomendasi AI pemanfaatan aset (Gemini + 42 POI) | ✅ Selesai |
+| Rekomendasi AI pemanfaatan aset (Gemini + 42 POI, otomatis saat simpan/ubah aset) | ✅ Selesai |
 | Live Chat real-time + Chatbot FAQ (18 topik, 265 kata kunci, tahan typo) | ✅ Selesai |
 | Skema pemanfaatan legal (SEWA, PKP, KSP, BGS, BSG, KSPI) | ✅ Selesai |
 

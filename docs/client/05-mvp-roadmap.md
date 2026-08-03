@@ -13,9 +13,10 @@ Sistem PESET **telah selesai** untuk kebutuhan inti: portal publik, panel admin,
 ## 2. Fitur yang SUDAH SELESAI (MVP)
 
 ### Inti Pengelolaan Aset
+- [x] Landing page v2: hero, statistik aset real-time, aset unggulan, alur & FAQ
 - [x] Portal publik: katalog aset, pencarian, filter, pagination
 - [x] Peta interaktif (GIS) aset daerah
-- [x] Detail aset: foto, spesifikasi, status, riwayat pemanfaatan
+- [x] Detail aset: foto, spesifikasi, status, riwayat pemanfaatan, rekomendasi AI
 - [x] Panel admin **9 modul** (OPD, Kategori Aset KIB, Aset, Jenis Pemanfaatan, Pihak Ketiga, Pemanfaatan, GIS Layer, Users, Roles)
 - [x] Import aset massal dari **Excel** + template download
 - [x] Dashboard statistik
@@ -28,7 +29,7 @@ Sistem PESET **telah selesai** untuk kebutuhan inti: portal publik, panel admin,
 - [x] Sesi tahan lama (token + cookie)
 
 ### Fitur Unggulan
-- [x] **Rekomendasi AI** pemanfaatan aset (Gemini + 42 titik fasilitas terdekat)
+- [x] **Rekomendasi AI otomatis** pemanfaatan aset (Gemini + 42 titik fasilitas terdekat) — dibuat saat aset disimpan/diubah, langsung tampil di portal publik
 - [x] **Live Chat real-time** pengunjung ↔ petugas (WebSocket)
 - [x] **Chatbot 24 jam** — 18 topik FAQ, 265 kata kunci, **paham salah ketik**
 - [x] Notifikasi petugas real-time (badge unread + toast + notifikasi browser)
@@ -93,7 +94,7 @@ Dibagi ke fase-fase logis berdasarkan nilai & kesiapan.
 
 - Sistem berjalan di **Docker** → mudah dipindah/di-deploy (on-premise maupun cloud).
 - Data tersimpan di **PostgreSQL** → aman, terstruktur, bisa di-backup.
-- AI hanya diaktifkan saat diminta → **biaya terkendali**.
+- AI dipicu otomatis saat aset disimpan/diubah (latar belakang) → **biaya terkendali**; publik & chatbot tanpa biaya AI.
 - Chatbot & pencocokan berjalan **tanpa biaya AI** (rule-based + anti-typo).
 
 ---
