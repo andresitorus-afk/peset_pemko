@@ -89,7 +89,6 @@ const seenIds = new Set<string>()
 
 let session: { id: string; token: string } | null = null
 let channel: any = null
-const STORAGE_KEY = 'peset_chat_session'
 
 function label(t: string) {
   return t === 'visitor' ? 'Anda' : t === 'admin' ? 'Petugas' : 'PESET Bot'
@@ -111,13 +110,13 @@ async function createSession() {
   if (!res.ok) throw new Error('gagal membuat sesi chat')
   const { data } = await res.json()
   session = { id: data.id, token: data.token }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
   setSessionToken(session.token)
   data.messages?.forEach(appendMessage)
 }
 
 async function loadHistory() {
   const res = await fetch(`${apiBase}/api/public/chat/${session!.id}/messages`, { headers: { 'X-Chat-Session': session!.token } })
+  if (res.status === 404 || res.status === 403) { await freshSession(); return }
   if (!res.ok) return
   const { data } = await res.json()
   data.forEach(appendMessage)
@@ -125,32 +124,37 @@ async function loadHistory() {
 
 async function ensureSession() {
   if (session) return
+  loading.value = true
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      const s = JSON.parse(raw)
-      if (s && s.id && s.token) session = s
-    }
-  } catch { /* corrupted storage */ }
-
-  if (!session) {
-    loading.value = true
-    try {
-      await createSession()
-    } catch {
-      loading.value = false
-      return
-    }
+    await createSession()
+  } catch {
     loading.value = false
-  } else {
-    setSessionToken(session.token)
+    return
   }
+  loading.value = false
 
   if (!echo.value) return
+  listenChannel()
+  loadHistory()
+}
+
+function listenChannel() {
+  if (!echo.value || !session) return
   channel = echo.value.private(`chat.${session.id}`).listen('.message.sent', (e: any) => {
     appendMessage(e)
   })
-  loadHistory()
+}
+
+async function freshSession() {
+  if (channel) { try { channel.stopListening('.message.sent') } catch { /* noop */ } }
+  channel = null
+  session = null
+  messages.value = []
+  seenIds.clear()
+  try {
+    await createSession()
+    listenChannel()
+  } catch { /* keep old session fallback */ }
 }
 
 async function send() {
@@ -159,11 +163,20 @@ async function send() {
   sending.value = true
   typing.value = false
   try {
-    const res = await fetch(`${apiBase}/api/public/chat/${session.id}/messages`, {
+    let res = await fetch(`${apiBase}/api/public/chat/${session.id}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Chat-Session': session.token },
       body: JSON.stringify({ message: text }),
     })
+    if (res.status === 403 || res.status === 404) {
+      await freshSession()
+      if (!session) throw new Error('gagal membuat sesi baru')
+      res = await fetch(`${apiBase}/api/public/chat/${session.id}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Chat-Session': session.token },
+        body: JSON.stringify({ message: text }),
+      })
+    }
     if (!res.ok) throw new Error('gagal mengirim')
     const { data } = await res.json()
     input.value = ''

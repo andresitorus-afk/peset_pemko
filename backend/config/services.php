@@ -35,19 +35,14 @@ return [
         ],
     ],
 
-    'gemini' => [
-        'key' => env('GEMINI_API_KEY'),
-        'model' => env('GEMINI_MODEL', 'gemini-flash-latest'),
+    'rekomendasi' => [
+        // local = model XGBoost (gratis, deterministik)
+        'driver' => env('REKOMENDASI_DRIVER', 'local'),
     ],
 
     'chatbot' => [
         'fallback_reply' => 'Mohon maaf, pertanyaan Anda akan diteruskan ke petugas. Mohon tunggu balasan, terima kasih.',
         'greeting' => 'Halo! Selamat datang di Live Chat PESET. Kami siap membantu Anda terkait pemanfaatan aset daerah. Silakan ketik pertanyaan Anda.',
-    ],
-
-    'chat' => [
-        // ponytail: auto-close dijalankan saat sesi dibaca (bukan cron); 10 menit tanpa pesan visitor → sesi tertutup.
-        'auto_close_minutes' => env('CHAT_AUTO_CLOSE_MINUTES', 10),
     ],
 
 ];

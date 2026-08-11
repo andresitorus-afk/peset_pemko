@@ -19,6 +19,9 @@
       <template #cell-opd.nama_opd="{ row }">
         {{ row.opd?.nama_opd || '—' }}
       </template>
+      <template #cell-nilai_perolehan="{ row }">
+        <span class="tabular-nums">{{ row.nilai_perolehan ? 'Rp ' + formatRupiah(String(row.nilai_perolehan)) : '—' }}</span>
+      </template>
     </AdminDataTable>
 
     <AdminFormModal
@@ -68,10 +71,6 @@
           <UiInput v-model="form.alamat" label="Alamat" placeholder="Alamat lokasi aset..." class="mt-4" />
           <!-- Map -->
           <div v-if="form.latitude" ref="mapContainer" class="w-full h-64 sm:h-80 rounded-xl border border-slate-200 overflow-hidden z-0 mt-4"></div>
-          <div v-if="gisBuildingSearching" class="mt-2 text-xs text-teal-600 flex items-center gap-1.5">
-            <svg class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-            Mencari polygon gedung...
-          </div>
           <div class="grid grid-cols-2 gap-3 mt-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 mb-1.5">Latitude</label>
@@ -184,7 +183,6 @@ let mapMarker: any = null
 let drawnLayer: any = null
 let drawnItems: any = null
 const gisReady = ref(false)
-const gisBuildingSearching = ref(false)
 const gisDrawActive = ref(false)
 
 function formatRupiah(val: string | number | undefined) {
@@ -238,6 +236,7 @@ const columns = [
   { key: 'kode_barang', label: 'Kode Barang' },
   { key: 'nama_barang', label: 'Nama Barang' },
   { key: 'opd.nama_opd', label: 'OPD' },
+  { key: 'nilai_perolehan', label: 'Nilai Aset' },
   { key: 'kondisi', label: 'Kondisi' },
   { key: 'status', label: 'Status' },
 ]
@@ -260,43 +259,21 @@ function onGisSearch() {
   }, 400)
 }
 
-function selectGisResult(r: any) {
+async function selectGisResult(r: any) {
   gisSearchQuery.value = r.display_name
   gisSearchResults.value = []
   form.value.alamat = r.display_name
   form.value.latitude = r.lat
   form.value.longitude = r.lon
+  await nextTick()
   initMap()
-  detectBuilding(r.lat, r.lon)
 }
 
-async function detectBuilding(lat: string, lng: string) {
-  gisBuildingSearching.value = true
-  try {
-    const query = `[out:json];(way["building"](around:50,${lat},${lng});relation["building"](around:50,${lat},${lng}););out body geom;`
-    const res = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`, { headers: { 'User-Agent': 'PesetPemko/1.0' } })
-    const data = await res.json()
-    if (data.elements?.length) {
-      const el = data.elements[0]
-      const coords = el.geometry?.map((p: any) => [p.lon, p.lat])
-      if (coords?.length >= 3) {
-        coords.push(coords[0])
-        const geo = { type: 'Polygon', coordinates: [coords] }
-        form.value.polygon_geojson = geo
-        form.value.luas_gis = ''
-        drawPolygonOnMap(geo)
-        return
-      }
-    }
-  } catch {}
-  gisBuildingSearching.value = false
-}
-
-function initMap(retries = 0) {
+async function initMap() {
   destroyMap()
   if (!mapContainer.value || !form.value.latitude || !form.value.longitude) return
+  await loadLeaflet()
   const L = (window as any).L
-  if (!L) { if (retries < 20) setTimeout(() => initMap(retries + 1), 250); return }
   const lat = parseFloat(form.value.latitude)
   const lng = parseFloat(form.value.longitude)
   if (isNaN(lat) || isNaN(lng)) return
@@ -355,7 +332,6 @@ function drawPolygonOnMap(geo: any) {
   })
   drawnLayer = poly
   saveDrawnPolygon(poly)
-  gisBuildingSearching.value = false
 }
 
 function saveDrawnPolygon(layer: any) {

@@ -13,10 +13,10 @@ class ChatController extends Controller
 {
     public function index(): JsonResponse
     {
-        $this->autoCloseStaleSessions();
+        $this->purgeClosed();
 
-        $sessions = ChatSession::with(['messages' => fn ($q) => $q->latest()->limit(1)])
-            ->orderByRaw("(status = 'open') DESC")
+        $sessions = ChatSession::where('status', 'open')
+            ->with(['messages' => fn ($q) => $q->latest()->limit(1)])
             ->orderByDesc('updated_at')
             ->get();
 
@@ -40,8 +40,6 @@ class ChatController extends Controller
 
     public function show(string $session): JsonResponse
     {
-        $this->autoCloseStaleSessions();
-
         $chat = ChatSession::findOrFail($session);
         $messages = ChatMessage::where('session_id', $chat->id)->orderBy('created_at')->get();
 
@@ -84,24 +82,17 @@ class ChatController extends Controller
 
     public function unreadCount(): JsonResponse
     {
-        $this->autoCloseStaleSessions();
-
         $count = ChatSession::where('status', 'open')->get()
             ->sum(fn (ChatSession $session) => $this->unreadFor($session));
 
         return response()->json(['unread' => $count]);
     }
 
-    private function autoCloseStaleSessions(): void
+    private function purgeClosed(): void
     {
-        $cutoff = now()->subMinutes(config('services.chat.auto_close_minutes', 10));
-
-        ChatSession::where('status', 'open')
-            ->where('created_at', '<', $cutoff)
-            ->whereDoesntHave('messages', fn ($q) => $q
-                ->where('sender_type', 'visitor')
-                ->where('created_at', '>', $cutoff))
-            ->update(['status' => 'closed', 'closed_at' => now()]);
+        ChatSession::where('status', 'closed')
+            ->where('closed_at', '<', now()->subMinutes(5))
+            ->delete();
     }
 
     private function unreadFor(ChatSession $session): int

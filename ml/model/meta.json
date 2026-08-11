@@ -1,0 +1,102 @@
+{
+  "feature_names": [
+    "opd_id",
+    "kategori_kib",
+    "kondisi",
+    "status",
+    "luas_m2",
+    "umur_aset",
+    "poi_kampus_n",
+    "poi_kampus_d",
+    "poi_sekolah_n",
+    "poi_sekolah_d",
+    "poi_mal_n",
+    "poi_mal_d",
+    "poi_pasar_n",
+    "poi_pasar_d",
+    "poi_rumah_sakit_n",
+    "poi_rumah_sakit_d",
+    "poi_puskesmas_n",
+    "poi_puskesmas_d",
+    "poi_stasiun_n",
+    "poi_stasiun_d",
+    "poi_kantor_n",
+    "poi_kantor_d",
+    "poi_tempat_budaya_n",
+    "poi_tempat_budaya_d",
+    "poi_total"
+  ],
+  "features_json": [
+    {
+      "name": "opd_id"
+    },
+    {
+      "name": "kategori_kib",
+      "map": {
+        "KIB A": 0,
+        "KIB B": 1,
+        "KIB C": 2,
+        "KIB D": 3,
+        "KIB E": 4,
+        "KIB F": 5
+      }
+    },
+    {
+      "name": "kondisi",
+      "map": {
+        "Baik": 0,
+        "Rusak_Ringan": 1,
+        "Rusak_Berat": 2
+      }
+    },
+    {
+      "name": "status",
+      "map": {
+        "Aktif": 0,
+        "Idle": 1,
+        "Dimanfaatkan": 2
+      }
+    }
+  ],
+  "poi_types": [
+    "kampus",
+    "sekolah",
+    "mal",
+    "pasar",
+    "rumah_sakit",
+    "puskesmas",
+    "stasiun",
+    "kantor",
+    "tempat_budaya"
+  ],
+  "radius_km": 3.0,
+  "jenis": [
+    "SEWA",
+    "PKP",
+    "KSP",
+    "BGS",
+    "BSG",
+    "KSPI"
+  ],
+  "permintaan": [
+    "rendah",
+    "sedang",
+    "tinggi"
+  ],
+  "base_score_y1": [
+    -0.028612137,
+    0.004127741,
+    0.00425148,
+    0.0116945505,
+    -0.0079648495,
+    0.016502261
+  ],
+  "base_score_y2": 6.8740096,
+  "base_score_y3": [
+    0.012487173,
+    -0.0150488615,
+    0.0025615692
+  ],
+  "num_class_y1": 6,
+  "num_class_y3": 3
+}

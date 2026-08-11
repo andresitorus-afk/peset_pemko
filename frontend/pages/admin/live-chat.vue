@@ -166,8 +166,12 @@ async function closeSession() {
   try {
     await api.post(`/chat/sessions/${activeSession.value}/close`)
     toast.show('Sesi ditutup', 'info')
-    loadSessions()
-    current.value = sessions.value.find(s => s.id === activeSession.value) ?? current.value
+    if (liveChannel) { liveChannel.stopListening('.message.sent'); liveChannel = null }
+    sessions.value = sessions.value.filter(s => s.id !== activeSession.value)
+    activeSession.value = null
+    current.value = null
+    messages.value = []
+    refreshUnread()
   } catch { toast.show('Gagal menutup sesi', 'error') }
 }
 

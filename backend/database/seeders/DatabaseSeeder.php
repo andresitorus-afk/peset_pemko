@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
         $this->call(KategoriAsetSeeder::class);
         $this->call(PoiSeeder::class);
         $this->call(ChatbotFaqSeeder::class);
+        $this->call(JenisPemanfaatanSeeder::class);
 
         $admin = User::create(['name' => 'Admin Pemko', 'email' => 'admin@pemkomedan.go.id', 'password' => bcrypt('password')]);
         $petugas = User::create(['name' => 'Petugas Aset', 'email' => 'petugas@pemkomedan.go.id', 'password' => bcrypt('password')]);
@@ -122,5 +123,7 @@ class DatabaseSeeder extends Seeder
         RiwayatAset::create(['aset_id' => $a1->id, 'aksi' => 'Pemanfaatan', 'deskripsi' => 'Pemanfaatan aset Tanah Kantor Dinas Pendidikan disetujui', 'user_id' => $admin->id]);
         RiwayatAset::create(['aset_id' => $a1->id, 'aksi' => 'Pemeliharaan', 'deskripsi' => 'Pemeliharaan berkala dilakukan', 'user_id' => $admin->id]);
         RiwayatAset::create(['aset_id' => $a3->id, 'aksi' => 'Mutasi', 'deskripsi' => 'Aset dipindahkan dari Dinas PUPR', 'user_id' => $admin->id]);
+
+        $this->call(RealAssetMedanSeeder::class);
     }
 }

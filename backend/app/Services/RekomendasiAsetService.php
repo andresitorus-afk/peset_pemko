@@ -9,22 +9,16 @@ use Throwable;
 
 class RekomendasiAsetService
 {
-    public function __construct(private readonly GeminiService $gemini)
-    {
+    public function __construct(
+        private readonly RekomendasiLocalService $local,
+    ) {
     }
 
     public function generate(Aset $aset, ?int $userId = null): void
     {
-        $aset->load(['kategori', 'gisAset']);
-        $pois = $this->gemini->nearbyPois(
-            isset($aset->gisAset->latitude) ? (float) $aset->gisAset->latitude : null,
-            isset($aset->gisAset->longitude) ? (float) $aset->gisAset->longitude : null
-        );
-
         try {
-            $text = $this->gemini->generate($this->gemini->buildPrompt($aset, $pois));
-            $hasil = $this->gemini->parseJson($text);
-            $this->gemini->validateHasil($hasil);
+            $hasil = $this->local->recommend($aset);
+
             RekomendasiAi::create([
                 'aset_id' => $aset->id,
                 'hasil' => $hasil,

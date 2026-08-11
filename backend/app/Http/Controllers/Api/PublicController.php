@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AsetResource;
 use App\Models\Aset;
+use App\Models\Opd;
 use App\Models\RekomendasiAi;
 use Illuminate\Http\JsonResponse;
 
@@ -14,6 +15,7 @@ class PublicController extends Controller
     {
         $aset = Aset::query()
             ->with(['opd', 'kategori', 'foto'])
+            ->when(!request()->boolean('include_dummy'), fn ($q) => $q->where('kode_barang', 'not like', 'DMY%'))
             ->when(request('search'), fn ($q, $s) => $q->where(function ($q) use ($s) {
                 $q->where('nama_barang', 'ilike', "%{$s}%")
                   ->orWhere('kode_barang', 'ilike', "%{$s}%")
@@ -47,8 +49,7 @@ class PublicController extends Controller
         $nilai = Aset::whereHas('kategori', fn ($q) => $q->whereIn('kode_kib', ['KIB A', 'KIB C']))->sum('nilai_perolehan');
         $tersedia = Aset::where('status', 'Idle')
             ->whereHas('kategori', fn ($q) => $q->whereIn('kode_kib', ['KIB A', 'KIB C']))->count();
-        $opd = Aset::whereHas('kategori', fn ($q) => $q->whereIn('kode_kib', ['KIB A', 'KIB C']))
-            ->distinct('opd_id')->count('opd_id');
+        $opd = Opd::count();
 
         return response()->json(['data' => compact('total', 'nilai', 'tersedia', 'opd')]);
     }
