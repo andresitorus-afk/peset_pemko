@@ -95,6 +95,13 @@ class AsetController extends Controller
         $gis = $request->input('gis');
         if (!$gis || !isset($gis['latitude'], $gis['longitude'], $gis['layer_id'])) return;
 
+        $polygon = $gis['polygon_geojson'] ?? null;
+        while (is_string($polygon)) {
+            $decoded = json_decode($polygon, true);
+            if (json_last_error() !== JSON_ERROR_NONE) break;
+            $polygon = $decoded;
+        }
+
         $aset->gisAset()->updateOrCreate(
             ['aset_id' => $aset->id],
             [
@@ -102,7 +109,7 @@ class AsetController extends Controller
                 'longitude' => $gis['longitude'],
                 'layer_id' => $gis['layer_id'],
                 'tipe_geometri' => $gis['tipe_geometri'] ?? 'Point',
-                'polygon_geojson' => $gis['polygon_geojson'] ?? null,
+                'polygon_geojson' => $polygon,
                 'luas_gis' => $gis['luas_gis'] ?? null,
                 'sumber_koordinat' => 'GoogleMaps',
             ]

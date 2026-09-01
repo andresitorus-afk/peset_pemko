@@ -2,10 +2,19 @@
   <div>
     <h1 class="text-2xl font-bold text-slate-900 mb-6">Kategori Aset</h1>
 
+    <div class="mb-4 max-w-xs">
+      <UiSearchSelect
+        v-model="filterKib"
+        label="Pilih KIB"
+        placeholder="Pilih KIB A atau KIB C"
+        :options="kibOptions"
+      />
+    </div>
+
     <AdminDataTable
       :columns="columns"
       :data="filteredItems"
-      search-placeholder="Cari kategori..."
+      search-placeholder="Cari nama kategori..."
       create-label="Tambah Kategori"
       @search="searchQuery = $event"
       @create="openCreate()"
@@ -64,6 +73,7 @@ const toast = useToast()
 
 const items = ref<any[]>([])
 const searchQuery = ref('')
+const filterKib = ref('')
 const modal = ref(false)
 const saving = ref(false)
 const editing = ref<any | null>(null)
@@ -94,8 +104,15 @@ const parentOptions = computed(() => {
     .map((i: any) => ({ value: i.id, label: `${i.nama_kategori} (${i.kode_kategori})` }))
 })
 
+const kibOptions = [
+  { value: 'KIB A', label: 'KIB A - Tanah' },
+  { value: 'KIB C', label: 'KIB C - Gedung dan Bangunan' },
+]
+
 const filteredItems = computed(() => {
-  let result = items.value.filter((i: any) => i.kode_kib === 'KIB A' || i.kode_kib === 'KIB C')
+  let result = filterKib.value
+    ? items.value.filter((i: any) => i.kode_kib === filterKib.value)
+    : items.value.filter((i: any) => i.kode_kib === 'KIB A' || i.kode_kib === 'KIB C')
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
     result = result.filter((i: any) =>
@@ -108,7 +125,7 @@ const filteredItems = computed(() => {
 
 async function fetchData() {
   try {
-    const res = await api.get('/kategori-aset')
+    const res = await api.get('/kategori-aset?per_page=1000')
     items.value = Array.isArray(res) ? res : res.data || []
   } catch (e: any) {
     toast.show('Gagal memuat data: ' + e.message, 'error')

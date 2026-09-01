@@ -28,7 +28,12 @@ export function useApi() {
   async function get<T = any>(path: string): Promise<T> {
     const res = await fetch(`${baseURL}/api${path}`, { headers: headers() })
     if (!res.ok) { const e = await res.json(); throw new Error(e.message || JSON.stringify(e)) }
-    return res.json()
+    const json = await res.json()
+    if (json && json.data && json.meta) {
+      json.last_page = json.meta.last_page
+      json.total = json.meta.total
+    }
+    return json
   }
 
   async function post<T = any>(path: string, body?: any): Promise<T> {

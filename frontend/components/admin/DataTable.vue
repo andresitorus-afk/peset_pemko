@@ -70,6 +70,15 @@
         <button :disabled="page <= 1" @click="$emit('page-change', page - 1)" type="button" class="px-3 py-1.5 rounded text-sm border border-slate-300 hover:bg-slate-50 disabled:opacity-50">
           Sebelumnya
         </button>
+        <button
+          v-for="n in totalPages" :key="n"
+          @click="$emit('page-change', n)"
+          type="button"
+          :class="n === page ? 'bg-teal-700 text-white border-teal-700' : 'border-slate-300 hover:bg-slate-50'"
+          class="px-3 py-1.5 rounded text-sm border"
+        >
+          {{ n }}
+        </button>
         <button :disabled="page >= totalPages" @click="$emit('page-change', page + 1)" type="button" class="px-3 py-1.5 rounded text-sm border border-slate-300 hover:bg-slate-50 disabled:opacity-50">
           Berikutnya
         </button>

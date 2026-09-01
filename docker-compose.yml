@@ -32,6 +32,7 @@ services:
       - DB_DATABASE=${DB_DATABASE}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
+      - APP_KEY=${APP_KEY}
     command: sh -c "ln -sf ../storage/app/public public/storage && php artisan serve --host=0.0.0.0 --port=8000"
 
   postgres:
@@ -46,14 +47,39 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
 
+  queue:
+    image: peset_pemko-backend
+    command: php artisan queue:work --sleep=2 --tries=3 --timeout=60
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend/storage:/var/www/html/storage
+    environment:
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - APP_KEY=${APP_KEY}
+      - CACHE_STORE=database
+
   reverb:
     image: peset_pemko-backend
     command: php artisan reverb:start --host=0.0.0.0 --port=8080
     depends_on:
-      - backend
+      - postgres
     ports:
       - "8080:8080"
     environment:
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - APP_KEY=${APP_KEY}
+      - CACHE_STORE=database
       - REVERB_APP_ID=${REVERB_APP_ID}
       - REVERB_APP_KEY=${REVERB_APP_KEY}
       - REVERB_APP_SECRET=${REVERB_APP_SECRET}

@@ -283,10 +283,10 @@ async function initMap() {
 
   mapMarker = L.marker([lat, lng]).addTo(mapInstance).bindPopup(form.value.nama_barang || 'Lokasi')
 
-  if (form.value.polygon_geojson) drawPolygonOnMap(form.value.polygon_geojson)
-
   drawnItems = new L.FeatureGroup()
   mapInstance.addLayer(drawnItems)
+
+  if (form.value.polygon_geojson) drawPolygonOnMap(form.value.polygon_geojson)
 
   const drawControl = new L.Control.Draw({
     edit: { featureGroup: drawnItems },
@@ -294,14 +294,9 @@ async function initMap() {
   })
   mapInstance.addControl(drawControl)
 
-  if (form.value.polygon_geojson) {
-    const poly = L.geoJSON(form.value.polygon_geojson)
-    poly.eachLayer((l: any) => drawnItems.addLayer(l))
-    drawnLayer = poly
-  }
-
   mapInstance.on(L.Draw.Event.CREATED, (e: any) => {
     drawnItems.clearLayers()
+    e.layer.setStyle?.(layerStyle())
     drawnItems.addLayer(e.layer)
     drawnLayer = e.layer
     saveDrawnPolygon(e.layer)
@@ -321,11 +316,20 @@ async function initMap() {
   gisReady.value = true
 }
 
+function layerStyle() {
+  const layer = gisLayerList.value.find((l: any) => l.id === form.value.gis_layer_id)
+  const color = layer?.warna || '#0f766e'
+  return { color, weight: 3, fillColor: color, fillOpacity: 0.35 }
+}
+
 function drawPolygonOnMap(geo: any) {
   if (!mapInstance || !drawnItems) return
   drawnItems.clearLayers()
   const L = (window as any).L
-  const poly = L.geoJSON(geo)
+  let g = geo
+  if (typeof g === 'string') { try { g = JSON.parse(g); if (typeof g === 'string') g = JSON.parse(g) } catch { g = null } }
+  if (!g?.type) return
+  const poly = L.geoJSON(g, { style: layerStyle })
   poly.eachLayer((l: any) => {
     drawnItems.addLayer(l)
     mapInstance.fitBounds(l.getBounds())

@@ -983,8 +983,9 @@ async function loadKategori() {
     const cats = new Map()
     ;(json.data || []).forEach((a: any) => {
       const k = a.kategori
-      if (k && k.id && ['KIB A','KIB C'].includes(k.kode_kib) && !cats.has(k.id)) {
-        cats.set(k.id, { id: k.id, nama_kategori: k.nama_kategori, kode_kib: k.kode_kib })
+      const key = k ? `${k.kode_kib}|${k.nama_kategori}` : ''
+      if (k && k.id && ['KIB A','KIB C'].includes(k.kode_kib) && !cats.has(key)) {
+        cats.set(key, { id: k.id, nama_kategori: k.nama_kategori, kode_kib: k.kode_kib })
       }
     })
     kategoriList.value = Array.from(cats.values())
