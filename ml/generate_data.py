@@ -16,7 +16,7 @@ random.seed(42)
 HERE = os.path.dirname(os.path.abspath(__file__))
 ADDRESSES = os.path.join(HERE, 'addresses_medan.json')
 
-# ===== POI Kota Medan (paritas dengan PoiSeeder) =====
+
 POIS = [
     ('USU', 'kampus', 3.5630, 98.6568), ('UMSU', 'kampus', 3.5899, 98.6779),
     ('UNIMED', 'kampus', 3.6060, 98.6790), ('Politeknik Negeri Medan', 'kampus', 3.5956, 98.6883),

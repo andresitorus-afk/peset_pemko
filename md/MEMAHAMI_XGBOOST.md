@@ -7,6 +7,26 @@
 
 ---
 
+## Ringkasan Singkat (TL;DR)
+
+Satu paket aset, tiga model terpisah — semuanya dilatih dengan **25 fitur** yang sama:
+
+| Model | Target / Label | Jenis | Nilai label |
+|---|---|---|---|
+| **y1** (`jenis_pemanfaatan.json`) | Jenis pemanfaatan | klasifikasi multiclass | 1 dari 6: `SEWA`, `PKP`, `KSP`, `BGS`, `BSG`, `KSPI` |
+| **y2** (`potensi_kontribusi.json`) | Pendapatan setahun | regresi | angka Rupiah (Rp 200 rb – Rp 7 M), dilatih pada `log10(Rupiah)` |
+| **y3** (`perkiraan_permintaan.json`) | Tingkat permintaan pasar | klasifikasi 3 kelas | `rendah` / `sedang` / `tinggi` |
+
+**Input (fitur, 25 kolom):** `opd_id`, `kategori_kib` (Tanah=0/Gedung=2), `kondisi` (0–2), `status` (0–2), `luas_m2`, `umur_aset`, + fitur POI dari 9 jenis titik kota (kampus, sekolah, mal, pasar, RS, puskesmas, stasiun, kantor, tempat budaya) dalam radius 3 km (`_n` = jumlah, `_d` = jarak terdekat), + `poi_total`.
+
+**Konfigurasi:** y1 & y3 = `multi:softprob`; y2 = `reg:squarederror`. `max_depth=3, eta=0.12, min_child_weight=4, subsample=0.85, colsample_bytree=0.8`, early stopping 25. Split 80/10/10 per `aset_id`.
+
+**Hasil uji (test set):** y1 akurasi **0.767** (baseline 0.167; KSPI lemah), y3 akurasi **0.900** (baseline 0.333), y2 **R² 0.919** (tampilkan rentang ±25%). Ketiganya **lulus** ambang kelayakan.
+
+**Output:** 4 file JSON disalin ke `backend/storage/app/ml/`, dieksekusi di PHP (`XgboostScorer`) → 7 kunci `rekomendasi_ai`. **Batasan:** diterapkan pada data dummy, butuh retrain dengan data asli sebelum keputusan resmi.
+
+---
+
 ## 1. Konteks: satu masalah aset, tiga jawaban
 
 Pemko Medan punya aset **tanah & gedung** yang bisa menganggur (idle). Tiap aset
