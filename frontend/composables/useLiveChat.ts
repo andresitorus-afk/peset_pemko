@@ -34,7 +34,7 @@ export function useLiveChat() {
 
   function browserNotify() {
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      try { new Notification('PESET Live Chat', { body: 'Ada pesan baru dari pengunjung.' }) } catch { /* noop */ }
+      try { new Notification('LENSA Live Chat', { body: 'Ada pesan baru dari pengunjung.' }) } catch { /* noop */ }
     }
   }
 

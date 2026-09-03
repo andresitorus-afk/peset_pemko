@@ -7,7 +7,9 @@ use App\Http\Resources\AsetResource;
 use App\Models\Aset;
 use App\Models\Opd;
 use App\Models\RekomendasiAi;
+use App\Services\RekomendasiLocalService;
 use Illuminate\Http\JsonResponse;
+use Throwable;
 
 class PublicController extends Controller
 {
@@ -58,11 +60,15 @@ class PublicController extends Controller
     {
         $aset = Aset::findOrFail($id);
 
-        $rekomendasi = RekomendasiAi::where('aset_id', $aset->id)
-            ->where('status', 'sukses')
-            ->orderByDesc('created_at')
-            ->first();
+        try {
+            $hasil = app(RekomendasiLocalService::class)->recommend($aset);
+        } catch (Throwable) {
+            $hasil = RekomendasiAi::where('aset_id', $aset->id)
+                ->where('status', 'sukses')
+                ->orderByDesc('created_at')
+                ->value('hasil');
+        }
 
-        return response()->json(['data' => $rekomendasi?->hasil]);
+        return response()->json(['data' => $hasil]);
     }
 }

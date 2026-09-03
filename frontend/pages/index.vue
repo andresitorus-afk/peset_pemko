@@ -9,7 +9,7 @@
               <img src="/logo-pemko.jpg" alt="Pemko Medan" width="32" height="36" class="h-7 sm:h-8">
             </div>
             <div>
-              <p class="text-base sm:text-lg font-extrabold text-white leading-tight tracking-tight">PESET</p>
+              <p class="text-base sm:text-lg font-extrabold text-white leading-tight tracking-tight">LENSA</p>
               <p class="text-[11px] sm:text-xs text-teal-200 leading-tight">Pemanfaatan Aset Daerah</p>
             </div>
           </a>
@@ -371,10 +371,10 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           <div class="reveal">
-            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white text-teal-700 text-xs font-bold uppercase tracking-widest border border-teal-100">Tentang PESET</span>
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white text-teal-700 text-xs font-bold uppercase tracking-widest border border-teal-100">Tentang LENSA</span>
             <h2 class="mt-4 text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">Portal Pemanfaatan Aset Daerah Kota Medan</h2>
             <p class="mt-4 text-slate-500 leading-relaxed">
-              PESET (Pemanfaatan Aset Daerah) adalah portal resmi Pemerintah Kota Medan
+              LENSA (Pemanfaatan Aset Daerah) adalah portal resmi Pemerintah Kota Medan
               untuk mempromosikan dan menawarkan aset daerah yang dapat dimanfaatkan oleh
               pihak ketiga melalui kerjasama, sewa, pinjam pakai, dan skema lainnya.
               Transparan, terverifikasi, dan mudah untuk semua pihak.
@@ -451,7 +451,7 @@
                 <img src="/logo-pemko.jpg" alt="Pemko Medan" width="28" height="31" class="h-7">
               </div>
               <div>
-                <p class="text-lg font-extrabold">PESET</p>
+                <p class="text-lg font-extrabold">LENSA</p>
                 <p class="text-xs text-teal-200/70">Pemanfaatan Aset Daerah</p>
               </div>
             </div>

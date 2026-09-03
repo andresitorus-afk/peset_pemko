@@ -1,11 +1,10 @@
-import { defineNuxtPlugin, addRouteMiddleware, navigateTo, useRuntimeConfig } from '#app'
+import { defineNuxtPlugin, addRouteMiddleware, navigateTo } from '#app'
 import { useAuth } from '~/composables/useAuth'
 
 export default defineNuxtPlugin(() => {
   addRouteMiddleware('auth', async (to) => {
     const auth = useAuth()
-    const config = useRuntimeConfig()
-    const loginPath = '/auth/' + config.public.loginHash
+    const loginPath = '/login'
 
     if (to.path.startsWith('/admin')) {
       if (!auth.token.value) {

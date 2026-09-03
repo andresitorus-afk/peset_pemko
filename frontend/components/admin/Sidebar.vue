@@ -103,13 +103,12 @@ const { unreadTotal } = useLiveChat()
 defineProps<{ collapsed: boolean }>()
 defineEmits<{ toggle: [] }>()
 
-const route = useRoute()
-const router = useRouter()
-const config = useRuntimeConfig()
+  const route = useRoute()
+  const router = useRouter()
 
-async function handleLogout() {
+  async function handleLogout() {
   await logout()
-  router.push('/auth/' + config.public.loginHash)
+  router.push('/login')
 }
 
 function isActive(path: string) {

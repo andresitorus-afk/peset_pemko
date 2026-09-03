@@ -70,7 +70,7 @@ const config = useRuntimeConfig()
 
 async function handleLogout() {
   await logout()
-  router.push('/auth/' + config.public.loginHash)
+  router.push('/login')
 }
 
 const breadcrumbs = computed(() => {

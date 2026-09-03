@@ -12,11 +12,11 @@ class ChatbotFaqSeeder extends Seeder
         $faqs = [
             [
                 'keywords' => ['apa itu peset', 'peset', 'portal', 'tentang peset', 'tentang website', 'aplikasi ini', 'peset apa', 'pengertian peset', 'info peset', 'tentang aplikasi', 'website ini'],
-                'answer' => 'PESET (Pemanfaatan Aset) adalah portal informasi dan rekomendasi pemanfaatan aset milik Pemerintah Kota Medan. Di sini Anda bisa melihat daftar aset yang tersedia, skema pemanfaatannya, serta rekomendasi AI untuk ide pemanfaatan.',
+                'answer' => 'LENSA (Pemanfaatan Aset) adalah portal informasi dan rekomendasi pemanfaatan aset milik Pemerintah Kota Medan. Di sini Anda bisa melihat daftar aset yang tersedia, skema pemanfaatannya, serta rekomendasi AI untuk ide pemanfaatan.',
             ],
             [
                 'keywords' => ['aset apa saja', 'aset tersedia', 'daftar aset', 'aset yang bisa', 'tanah kosong', 'gedung kosong', 'lihat aset', 'cari aset', 'list aset', 'katalog aset', 'data aset', 'aset apa', 'aset yang tersedia', 'aset dijual', 'aset disewakan', 'aset apa aja', 'daftar tanah', 'daftar gedung'],
-                'answer' => 'Aset yang bisa dimanfaatkan antara lain tanah dan gedung/bangunan milik daerah yang berstatus tersedia (Idle). Anda bisa melihat daftarnya di halaman beranda portal PESET, lengkap dengan lokasi dan statusnya.',
+                'answer' => 'Aset yang bisa dimanfaatkan antara lain tanah dan gedung/bangunan milik daerah yang berstatus tersedia (Idle). Anda bisa melihat daftarnya di halaman beranda portal LENSA, lengkap dengan lokasi dan statusnya.',
             ],
             [
                 'keywords' => ['skema', 'jenis pemanfaatan', 'sewa', 'pinjam pakai', 'kerja sama', 'bangun guna', 'bangun serah', 'ksp', 'pkp', 'bgs', 'bsg', 'bagi hasil', 'skema apa saja', 'jenis skema', 'macam skema', 'skema sewa', 'skema pemanfaatan', 'kerjasama', 'sewa lahan', 'sewa bangunan'],

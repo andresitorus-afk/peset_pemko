@@ -26,7 +26,7 @@
             </svg>
           </div>
           <div class="flex-1 min-w-0">
-            <p class="font-bold text-sm">PESET Live Chat</p>
+            <p class="font-bold text-sm">LENSA Live Chat</p>
             <p class="text-[11px] text-teal-100 flex items-center gap-1">
               <span class="inline-block w-2 h-2 rounded-full bg-green-300 animate-pulse"></span>
               CS 24 jam — bot menjawab otomatis
@@ -91,7 +91,7 @@ let session: { id: string; token: string } | null = null
 let channel: any = null
 
 function label(t: string) {
-  return t === 'visitor' ? 'Anda' : t === 'admin' ? 'Petugas' : 'PESET Bot'
+  return t === 'visitor' ? 'Anda' : t === 'admin' ? 'Petugas' : 'LENSA Bot'
 }
 
 function scrollBottom() {

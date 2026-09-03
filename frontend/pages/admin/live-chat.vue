@@ -181,7 +181,7 @@ async function scrollBottom() {
 }
 
 function label(type: string) {
-  return type === 'admin' ? 'Petugas' : type === 'bot' ? 'PESET Bot' : 'Pengunjung'
+  return type === 'admin' ? 'Petugas' : type === 'bot' ? 'LENSA Bot' : 'Pengunjung'
 }
 
 function timeAgo(iso?: string) {

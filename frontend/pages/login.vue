@@ -16,29 +16,8 @@
         <h2 class="text-2xl font-bold text-slate-900 mb-1">Selamat Datang</h2>
         <p class="text-sm text-slate-500 mb-8">Silakan masuk ke akun Anda untuk melanjutkan</p>
 
-        <!-- Tabs -->
-        <div class="flex gap-1 p-1 bg-slate-100 rounded-xl mb-6">
-          <button
-            type="button"
-            @click="mode = 'login'"
-            :class="[
-              'flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all',
-              mode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-            ]"
-          >Masuk</button>
-          <button
-            type="button"
-            @click="mode = 'register'"
-            :class="[
-              'flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all',
-              mode === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-            ]"
-          >Daftar</button>
-        </div>
-
         <!-- Login Form -->
-        <form v-if="mode === 'login'" @submit.prevent="handleLogin" class="space-y-5" novalidate>
-          <!-- Email -->
+        <form @submit.prevent="handleLogin" class="space-y-5" novalidate>
           <div>
             <label for="email" class="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>
             <div class="relative">
@@ -69,7 +48,6 @@
             </p>
           </div>
 
-          <!-- Password -->
           <div>
             <label for="password" class="block text-sm font-semibold text-slate-700 mb-1.5">Kata Sandi</label>
             <div class="relative">
@@ -114,7 +92,6 @@
             </p>
           </div>
 
-          <!-- Options -->
           <div class="flex items-center justify-between">
             <label class="flex items-center gap-3 cursor-pointer group">
               <div class="relative">
@@ -130,10 +107,8 @@
               </div>
               <span class="text-sm text-slate-600 group-hover:text-slate-800 select-none">Ingat saya</span>
             </label>
-            <a href="#" class="text-sm font-semibold text-teal-600 hover:text-teal-700 hover:underline transition-all">Lupa kata sandi?</a>
           </div>
 
-          <!-- Submit Button -->
           <button
             type="submit"
             :disabled="loading"
@@ -160,96 +135,6 @@
           </button>
         </form>
 
-        <!-- Register Form -->
-        <form v-else @submit.prevent="handleRegister" class="space-y-5" novalidate>
-          <div>
-            <label for="reg-name" class="block text-sm font-semibold text-slate-700 mb-1.5">Nama Lengkap</label>
-            <input
-              id="reg-name"
-              v-model="reg.name"
-              type="text"
-              autocomplete="name"
-              placeholder="Nama lengkap Anda"
-              class="w-full px-4 py-4 border-2 rounded-xl text-base outline-none transition-all duration-200 bg-white focus:ring-4 border-slate-200 focus:ring-teal-200 focus:border-teal-500 hover:border-slate-300"
-            />
-          </div>
-
-          <div>
-            <label for="reg-email" class="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>
-            <input
-              id="reg-email"
-              v-model="reg.email"
-              type="email"
-              autocomplete="email"
-              placeholder="contoh: nama@pemkomedan.go.id"
-              class="w-full px-4 py-4 border-2 rounded-xl text-base outline-none transition-all duration-200 bg-white focus:ring-4 border-slate-200 focus:ring-teal-200 focus:border-teal-500 hover:border-slate-300"
-            />
-          </div>
-
-          <div>
-            <label for="reg-password" class="block text-sm font-semibold text-slate-700 mb-1.5">Kata Sandi</label>
-            <input
-              id="reg-password"
-              v-model="reg.password"
-              type="password"
-              autocomplete="new-password"
-              placeholder="Minimal 8 karakter"
-              class="w-full px-4 py-4 border-2 rounded-xl text-base outline-none transition-all duration-200 bg-white focus:ring-4 border-slate-200 focus:ring-teal-200 focus:border-teal-500 hover:border-slate-300"
-            />
-          </div>
-
-          <div>
-            <label for="reg-password-confirm" class="block text-sm font-semibold text-slate-700 mb-1.5">Konfirmasi Kata Sandi</label>
-            <input
-              id="reg-password-confirm"
-              v-model="reg.password_confirmation"
-              type="password"
-              autocomplete="new-password"
-              placeholder="Ulangi kata sandi"
-              class="w-full px-4 py-4 border-2 rounded-xl text-base outline-none transition-all duration-200 bg-white focus:ring-4 border-slate-200 focus:ring-teal-200 focus:border-teal-500 hover:border-slate-300"
-            />
-          </div>
-
-          <button
-            type="submit"
-            :disabled="loading"
-            :class="[
-              'w-full py-4 rounded-xl text-base font-bold shadow-lg transition-all duration-200',
-              loading
-                ? 'bg-teal-400 text-white cursor-not-allowed'
-                : 'bg-gradient-to-r from-teal-600 to-teal-500 text-white hover:from-teal-700 hover:to-teal-600 hover:shadow-xl active:scale-[0.98]'
-            ]"
-          >
-            <span v-if="loading" class="flex items-center justify-center gap-2">
-              <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              Memproses...
-            </span>
-            <span v-else>Daftar</span>
-          </button>
-        </form>
-
-        <!-- Error Alert -->
-        <Transition name="alert">
-          <div v-if="successMsg" role="status" class="mt-6 p-4 bg-teal-50 border border-teal-200 rounded-xl flex items-start gap-3 shadow-sm">
-            <svg class="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <div class="flex-1">
-              <p class="text-sm font-semibold text-teal-800">Pendaftaran Berhasil</p>
-              <p class="text-sm text-teal-600 mt-0.5">{{ successMsg }}</p>
-            </div>
-            <button @click="successMsg = ''" type="button" class="text-teal-400 hover:text-teal-600 transition-colors" aria-label="Tutup">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </button>
-          </div>
-        </Transition>
-
-        <!-- Error Alert -->
         <Transition name="alert">
           <div v-if="loginError" role="alert" class="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 shadow-sm">
             <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +152,6 @@
           </div>
         </Transition>
 
-        <!-- Footer -->
         <p class="mt-10 text-center text-xs text-slate-400">
           &copy; {{ new Date().getFullYear() }} LENSA v1.0 &mdash; Pemerintah Kota Medan
         </p>
@@ -276,12 +160,9 @@
 
     <!-- Right: Visual Panel -->
     <div class="hidden lg:flex w-1/2 relative bg-gradient-to-br from-teal-800 via-teal-700 to-emerald-800 items-center justify-center overflow-hidden">
-      <!-- Decorative grid pattern -->
       <div class="absolute inset-0 opacity-[0.03]">
         <div class="absolute inset-0" style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 40px 40px;" />
       </div>
-
-      <!-- Decorative Shapes -->
       <div class="absolute inset-0 overflow-hidden">
         <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-white/[0.04]" />
         <div class="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-white/[0.03]" />
@@ -291,9 +172,7 @@
         <div class="absolute top-3/4 right-1/3 w-2 h-2 rounded-full bg-emerald-300/40 animate-ping" style="animation-duration: 4s; animation-delay: 1s;" />
         <div class="absolute top-1/2 left-1/4 w-1.5 h-1.5 rounded-full bg-white/30 animate-ping" style="animation-duration: 3.5s; animation-delay: 0.5s;" />
       </div>
-
       <div class="relative z-10 text-center px-12 max-w-lg">
-        <!-- Logo Icon -->
         <div class="w-32 h-32 mx-auto mb-8 bg-white/10 backdrop-blur-xl rounded-3xl flex items-center justify-center shadow-2xl ring-1 ring-white/20">
           <svg class="w-16 h-16 text-white/90" fill="none" stroke="currentColor" stroke-linejoin="round" viewBox="0 0 80 80">
             <path d="M12 52V36L40 18L68 36V52" stroke-width="2"/>
@@ -306,46 +185,9 @@
             <rect x="58" y="42" width="4" height="4" rx="1" stroke-width="1"/>
           </svg>
         </div>
-
         <h2 class="text-4xl font-extrabold text-white mb-3 tracking-tight">PEMKO MEDAN</h2>
         <div class="w-16 h-1 bg-gradient-to-r from-teal-400 to-emerald-400 mx-auto mb-5 rounded-full" />
-        <p class="text-lg text-teal-100/80 leading-relaxed max-w-sm mx-auto">
-          Kelola Aset Daerah untuk Medan Berkah
-        </p>
-
-        <!-- Feature List -->
-        <div class="mt-12 space-y-5 text-left max-w-xs mx-auto">
-          <div v-for="(item, i) in features" :key="i" class="flex items-center gap-4 group">
-            <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 group-hover:bg-white/20 transition-colors">
-              <svg class="w-4 h-4 text-teal-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="item.icon" />
-              </svg>
-            </div>
-            <span class="text-sm text-teal-100/80 font-medium">{{ item.label }}</span>
-          </div>
-        </div>
-
-        <!-- Bottom dots -->
-        <div class="mt-12 flex justify-center gap-2.5">
-          <span class="w-2.5 h-2.5 rounded-full bg-teal-400 ring-2 ring-teal-400/30" />
-          <span class="w-2.5 h-2.5 rounded-full bg-white/25" />
-          <span class="w-2.5 h-2.5 rounded-full bg-white/15" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Mobile Header -->
-    <div class="lg:hidden px-6 py-5 bg-gradient-to-r from-teal-700 to-teal-600">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0 shadow-sm">
-          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-          </svg>
-        </div>
-        <div>
-          <p class="text-sm font-bold text-white tracking-tight">SIPEMKO</p>
-          <p class="text-xs text-teal-200 font-medium">Sistem Pemanfaatan Aset Daerah</p>
-        </div>
+        <p class="text-lg text-teal-100/80 leading-relaxed max-w-sm mx-auto">Kelola Aset Daerah untuk Medan Berkah</p>
       </div>
     </div>
   </div>
@@ -359,30 +201,19 @@ import { useAuth } from '~/composables/useAuth'
 definePageMeta({ layout: false })
 
 const router = useRouter()
+const { login, fetchUser } = useAuth()
 
-const { login, register, fetchUser } = useAuth()
-
-const mode = ref<'login' | 'register'>('login')
 const email = ref('')
 const password = ref('')
-const reg = reactive({ name: '', email: '', password: '', password_confirmation: '' })
 const remember = ref(false)
 const showPassword = ref(false)
 const loading = ref(false)
 const loginError = ref('')
-const successMsg = ref('')
 
 const validation = reactive({
   email: { error: '' },
   password: { error: '' },
 })
-
-const features = [
-  { label: 'Sewa Aset Daerah', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-  { label: 'Pinjam Pakai', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01' },
-  { label: 'Kerja Sama Pemanfaatan', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
-  { label: 'Bangun Guna Serah', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
-]
 
 onMounted(() => {
   const el = document.getElementById('email')
@@ -412,7 +243,6 @@ function validate(): boolean {
 
 async function handleLogin() {
   loginError.value = ''
-  successMsg.value = ''
   if (!validate()) return
 
   loading.value = true
@@ -422,42 +252,6 @@ async function handleLogin() {
     router.push('/admin')
   } catch (e: any) {
     loginError.value = e.message || 'Email atau kata sandi yang Anda masukkan salah. Silakan coba lagi.'
-  } finally {
-    loading.value = false
-  }
-}
-
-async function handleRegister() {
-  loginError.value = ''
-  if (!reg.name || !reg.email || !reg.password || !reg.password_confirmation) {
-    loginError.value = 'Semua kolom wajib diisi.'
-    return
-  }
-  if (reg.password.length < 8) {
-    loginError.value = 'Kata sandi minimal 8 karakter.'
-    return
-  }
-  if (reg.password !== reg.password_confirmation) {
-    loginError.value = 'Konfirmasi kata sandi tidak cocok.'
-    return
-  }
-  if (!/^[^\s@]+@(?:[a-z0-9-]+\.)*pemkomedan\.go\.id$/i.test(reg.email)) {
-    loginError.value = 'Email harus berakhiran @pemkomedan.go.id'
-    return
-  }
-
-  loading.value = true
-  try {
-    await register(reg.name, reg.email, reg.password)
-    reg.name = ''
-    reg.email = ''
-    reg.password = ''
-    reg.password_confirmation = ''
-    successMsg.value = 'Pendaftaran berhasil. Silakan login dengan akun yang didaftarkan.'
-    mode.value = 'login'
-    loginError.value = ''
-  } catch (e: any) {
-    loginError.value = e.message || 'Pendaftaran gagal. Silakan coba lagi.'
   } finally {
     loading.value = false
   }
