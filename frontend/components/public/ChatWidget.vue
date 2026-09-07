@@ -28,8 +28,10 @@
           <div class="flex-1 min-w-0">
             <p class="font-bold text-sm">LENSA Live Chat</p>
             <p class="text-[11px] text-teal-100 flex items-center gap-1">
-              <span class="inline-block w-2 h-2 rounded-full bg-green-300 animate-pulse"></span>
-              CS 24 jam — bot menjawab otomatis
+              <span v-if="!expired && session" class="inline-block w-2 h-2 rounded-full bg-green-300 animate-pulse"></span>
+              <span v-if="!expired && session">Terhubung · sisa {{ formatLeft() }}</span>
+              <span v-else-if="expired">Sesi berakhir — kirim pesan baru untuk chat lagi</span>
+              <span v-else>CS 24 jam — bot menjawab otomatis</span>
             </p>
           </div>
         </div>
@@ -84,11 +86,17 @@ const input = ref('')
 const sending = ref(false)
 const loading = ref(false)
 const typing = ref(false)
+const expired = ref(false)
+const secondsLeft = ref(0)
 const msgBox = ref<HTMLDivElement | null>(null)
 const seenIds = new Set<string>()
 
+const STORAGE_KEY = 'lensa_chat_session'
+const SESSION_SECONDS = 5 * 60
+
 let session: { id: string; token: string } | null = null
 let channel: any = null
+let countdownTimer: ReturnType<typeof setInterval> | null = null
 
 function label(t: string) {
   return t === 'visitor' ? 'Anda' : t === 'admin' ? 'Petugas' : 'LENSA Bot'
@@ -105,72 +113,127 @@ function appendMessage(m: any) {
   scrollBottom()
 }
 
+function clearStored() {
+  localStorage.removeItem(STORAGE_KEY)
+}
+
+function formatLeft() {
+  const m = Math.floor(secondsLeft.value / 60)
+  const s = secondsLeft.value % 60
+  return `${m}:${String(s).padStart(2, '0')}`
+}
+
+function startCountdown() {
+  stopCountdown()
+  if (!session) return
+  const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
+  let expiresAt = stored.expiresAt
+  if (!expiresAt) {
+    expiresAt = Date.now() + SESSION_SECONDS * 1000
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ id: session.id, token: session.token, expiresAt }))
+  }
+  countdownTimer = setInterval(() => {
+    secondsLeft.value = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000))
+    if (secondsLeft.value <= 0) endSession()
+  }, 1000)
+}
+
+function stopCountdown() {
+  if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null }
+}
+
 async function createSession() {
   const res = await fetch(`${apiBase}/api/public/chat/sessions`, { method: 'POST' })
   if (!res.ok) throw new Error('gagal membuat sesi chat')
   const { data } = await res.json()
   session = { id: data.id, token: data.token }
   setSessionToken(session.token)
+  const expiresAt = Date.now() + SESSION_SECONDS * 1000
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ id: session.id, token: session.token, expiresAt }))
+  messages.value = []
+  seenIds.clear()
+  expired.value = false
   data.messages?.forEach(appendMessage)
+  listenChannel()
+  startCountdown()
 }
 
 async function loadHistory() {
   const res = await fetch(`${apiBase}/api/public/chat/${session!.id}/messages`, { headers: { 'X-Chat-Session': session!.token } })
-  if (res.status === 404 || res.status === 403) { await freshSession(); return }
+  if (res.status === 404 || res.status === 403 || res.status === 410) { expire(); return }
   if (!res.ok) return
   const { data } = await res.json()
   data.forEach(appendMessage)
 }
 
-async function ensureSession() {
-  if (session) return
-  loading.value = true
-  try {
-    await createSession()
-  } catch {
-    loading.value = false
-    return
-  }
-  loading.value = false
-
-  if (!echo.value) return
-  listenChannel()
-  loadHistory()
-}
-
 function listenChannel() {
   if (!echo.value || !session) return
+  if (channel) { try { channel.stopListening('.message.sent') } catch { /* noop */ } }
   channel = echo.value.private(`chat.${session.id}`).listen('.message.sent', (e: any) => {
     appendMessage(e)
   })
 }
 
-async function freshSession() {
+function expire() {
+  stopCountdown()
   if (channel) { try { channel.stopListening('.message.sent') } catch { /* noop */ } }
   channel = null
   session = null
   messages.value = []
   seenIds.clear()
-  try {
-    await createSession()
-    listenChannel()
-  } catch { /* keep old session fallback */ }
+  clearStored()
+  expired.value = true
+  secondsLeft.value = 0
+}
+
+function endSession() {
+  expire()
+}
+
+async function restore() {
+  loading.value = true
+  const stored = localStorage.getItem(STORAGE_KEY)
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored)
+      if (parsed.id && parsed.token && parsed.expiresAt && parsed.expiresAt > Date.now()) {
+        session = { id: parsed.id, token: parsed.token }
+        setSessionToken(session.token)
+        if (echo.value) listenChannel()
+        await loadHistory()
+        startCountdown()
+        loading.value = false
+        return
+      }
+    } catch { clearStored() }
+  }
+  loading.value = false
+  expired.value = false
 }
 
 async function send() {
   const text = input.value.trim()
-  if (!text || sending.value || !session) return
+  if (!text || sending.value) return
+
+  if (expired.value) expired.value = false
+  if (!session) {
+    sending.value = true
+    try {
+      await createSession()
+    } catch { sending.value = false; return }
+  }
+  if (!session) return
+
   sending.value = true
-  typing.value = false
   try {
     let res = await fetch(`${apiBase}/api/public/chat/${session.id}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Chat-Session': session.token },
       body: JSON.stringify({ message: text }),
     })
-    if (res.status === 403 || res.status === 404) {
-      await freshSession()
-      if (!session) throw new Error('gagal membuat sesi baru')
+    if (res.status === 403 || res.status === 404 || res.status === 410) {
+      expire()
+      await createSession()
       res = await fetch(`${apiBase}/api/public/chat/${session.id}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Chat-Session': session.token },
@@ -190,11 +253,12 @@ async function send() {
 }
 
 onMounted(() => {
-  ensureSession()
+  restore()
 })
 
 onUnmounted(() => {
   if (channel) { try { channel.stopListening('.message.sent') } catch { /* noop */ } }
+  stopCountdown()
 })
 </script>
 

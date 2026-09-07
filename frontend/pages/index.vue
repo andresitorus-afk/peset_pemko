@@ -16,6 +16,7 @@
           <nav class="hidden md:flex items-center gap-1">
             <a href="#beranda" class="px-4 py-2 text-sm font-semibold text-white rounded-lg bg-teal-700/60 shadow-sm">Beranda</a>
             <a href="#aset" class="px-4 py-2 text-sm font-medium text-slate-200 hover:text-white rounded-lg hover:bg-white/10 transition-all">Daftar Aset</a>
+            <NuxtLink to="/peta" class="px-4 py-2 text-sm font-medium text-slate-200 hover:text-white rounded-lg hover:bg-white/10 transition-all">Peta Aset</NuxtLink>
             <a href="#cara" class="px-4 py-2 text-sm font-medium text-slate-200 hover:text-white rounded-lg hover:bg-white/10 transition-all">Cara Pemanfaatan</a>
             <a href="#faq" class="px-4 py-2 text-sm font-medium text-slate-200 hover:text-white rounded-lg hover:bg-white/10 transition-all">FAQ</a>
             <a href="#tentang" class="px-4 py-2 text-sm font-medium text-slate-200 hover:text-white rounded-lg hover:bg-white/10 transition-all">Tentang</a>

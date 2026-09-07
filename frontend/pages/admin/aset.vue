@@ -274,6 +274,11 @@ async function initMap() {
   if (!mapContainer.value || !form.value.latitude || !form.value.longitude) return
   await loadLeaflet()
   const L = (window as any).L
+  L.drawLocal.draw.handlers.polygon.tooltip.start = ''
+  L.drawLocal.draw.handlers.polygon.tooltip.cont = ''
+  L.drawLocal.draw.handlers.polygon.tooltip.end = ''
+  L.drawLocal.draw.handlers.polygon.tooltip.line1 = ''
+  L.drawLocal.draw.handlers.polygon.tooltip.line2 = ''
   const lat = parseFloat(form.value.latitude)
   const lng = parseFloat(form.value.longitude)
   if (isNaN(lat) || isNaN(lng)) return
@@ -561,3 +566,9 @@ async function doDelete() {
 fetchData()
 fetchOptions()
 </script>
+
+<style scoped>
+.leaflet-draw-tooltip {
+  display: none !important;
+}
+</style>

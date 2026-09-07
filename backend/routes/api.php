@@ -32,6 +32,7 @@ Route::get('/public/aset', [\App\Http\Controllers\Api\PublicController::class, '
 Route::get('/public/statistik', [\App\Http\Controllers\Api\PublicController::class, 'statistik']);
 Route::get('/public/aset/{id}', [\App\Http\Controllers\Api\PublicController::class, 'asetDetail']);
 Route::get('/public/aset/{id}/rekomendasi', [\App\Http\Controllers\Api\PublicController::class, 'rekomendasi']);
+Route::get('/public/gis/aset', [GisAsetController::class, 'index']);
 
 Route::post('/public/chat/sessions', [PublicChatController::class, 'store'])->middleware('throttle:20,1');
 Route::get('/public/chat/{session}/messages', [PublicChatController::class, 'index'])->middleware('throttle:60,1');
@@ -88,6 +89,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/chat/sessions/{session}/messages', [ChatController::class, 'storeMessage']);
     Route::post('/chat/sessions/{session}/read', [ChatController::class, 'markRead']);
     Route::post('/chat/sessions/{session}/close', [ChatController::class, 'close']);
+    Route::delete('/chat/sessions/{session}', [ChatController::class, 'destroy']);
     Route::get('/chat/unread-count', [ChatController::class, 'unreadCount']);
     Route::apiResource('chat/faqs', ChatbotFaqController::class);
 

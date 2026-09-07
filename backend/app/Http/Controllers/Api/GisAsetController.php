@@ -25,6 +25,10 @@ class GisAsetController extends Controller
 
         if ($request->layer_id) $query->where('layer_id', $request->layer_id);
 
+        if ($request->status) {
+            $query->whereHas('aset', fn ($q) => $q->where('status', $request->status));
+        }
+
         $features = $query->get()->map(function ($gis) {
             return [
                 'type' => 'Feature',
@@ -36,9 +40,12 @@ class GisAsetController extends Controller
                     'nama_barang' => $gis->aset->nama_barang ?? null,
                     'status' => $gis->aset->status ?? null,
                     'kondisi' => $gis->aset->kondisi ?? null,
+                    'opd' => $gis->aset->opd->nama_opd ?? null,
                     'layer' => $gis->layer->nama_layer ?? null,
                     'layer_id' => $gis->layer_id,
-                    'luas_gis' => $gis->luas_gis,
+                    'warna' => $gis->layer->warna ?? null,
+                    'icon_marker' => $gis->layer->icon_marker ?? null,
+                    'luas_gis' => $gis->luas_gis ?? $gis->aset->luas ?? null,
                     'tipe_geometri' => $gis->tipe_geometri,
                 ],
             ];

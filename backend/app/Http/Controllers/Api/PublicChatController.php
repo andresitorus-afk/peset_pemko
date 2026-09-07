@@ -21,6 +21,7 @@ class PublicChatController extends Controller
             'token' => Str::random(40),
             'visitor_name' => $request->get('visitor_name') ?: 'Pengunjung',
             'status' => 'open',
+            'last_activity_at' => now(),
         ]);
 
         $greeting = ChatMessage::create([
@@ -41,6 +42,7 @@ class PublicChatController extends Controller
     public function index(Request $request, string $session): JsonResponse
     {
         $chat = $this->authorizeSession($request, $session);
+        $chat->update(['last_activity_at' => now()]);
         $messages = ChatMessage::where('session_id', $chat->id)->orderBy('created_at')->get();
 
         return response()->json(['data' => $messages->map(fn ($m) => $this->shape($m))]);
@@ -61,6 +63,7 @@ class PublicChatController extends Controller
             'sender_type' => 'visitor',
             'message' => $validated['message'],
         ]);
+        $chat->update(['last_activity_at' => now()]);
         broadcast(new ChatMessageSent($visitor));
 
         $faqs = ChatbotFaq::aktif()->get()->toArray();
@@ -91,6 +94,12 @@ class PublicChatController extends Controller
 
         $chat = ChatSession::findOrFail($id);
         abort_unless(hash_equals($chat->token, $token), 403);
+
+        if ($chat->isExpired()) {
+            $chat->messages()->delete();
+            $chat->delete();
+            abort(410, 'Sesi chat telah berakhir.');
+        }
 
         return $chat;
     }

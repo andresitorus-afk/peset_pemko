@@ -72,9 +72,10 @@ class GisAset extends Model
         if ($this->tipe_geometri === 'Point') {
             return ['type' => 'Point', 'coordinates' => [(float) $this->longitude, (float) $this->latitude]];
         }
-        if ($this->polygon_geojson) {
-            return $this->polygon_geojson;
+        $geo = $this->polygon_geojson;
+        if (is_string($geo)) {
+            $geo = json_decode($geo, true);
         }
-        return null;
+        return $geo ?: null;
     }
 }

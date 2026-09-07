@@ -42,7 +42,8 @@ return [
 
     'chatbot' => [
         'fallback_reply' => 'Mohon maaf, pertanyaan Anda akan diteruskan ke petugas. Mohon tunggu balasan, terima kasih.',
-        'greeting' => 'Halo! Selamat datang di Live Chat LENSA. Kami siap membantu Anda terkait pemanfaatan aset daerah. Silakan ketik pertanyaan Anda.',
+        'greeting' => 'Halo! Selamat datang di Live Chat LENSA. Kami siap membantu 
+Anda terkait pemanfaatan aset daerah. Silakan ketik pertanyaan Anda.',
+        'session_minutes' => 5,
     ],
-
 ];

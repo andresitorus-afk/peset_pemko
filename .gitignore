@@ -43,3 +43,6 @@ __pycache__/
 .opencode/
 peset_pemko/
 frontend/bkad jam.jpg
+
+# Deploy script (berisi kredensial server)
+deploy.ps1

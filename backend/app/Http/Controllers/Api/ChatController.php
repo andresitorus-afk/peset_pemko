@@ -41,6 +41,14 @@ class ChatController extends Controller
     public function show(string $session): JsonResponse
     {
         $chat = ChatSession::findOrFail($session);
+
+        if ($chat->isExpired()) {
+            $chat->messages()->delete();
+            $chat->delete();
+
+            return response()->json(['message' => 'Sesi chat telah berakhir.'], 410);
+        }
+
         $messages = ChatMessage::where('session_id', $chat->id)->orderBy('created_at')->get();
 
         return response()->json(['data' => $messages]);
@@ -57,7 +65,7 @@ class ChatController extends Controller
             'user_id' => $request->user()?->id,
             'message' => $validated['message'],
         ]);
-        $chat->update(['needs_attention' => false, 'last_admin_seen_at' => now()]);
+        $chat->update(['needs_attention' => false, 'last_admin_seen_at' => now(), 'last_activity_at' => now()]);
 
         broadcast(new ChatMessageSent($msg));
 
@@ -75,9 +83,15 @@ class ChatController extends Controller
     public function close(string $session): JsonResponse
     {
         $chat = ChatSession::findOrFail($session);
-        $chat->update(['status' => 'closed', 'closed_at' => now()]);
+        $chat->messages()->delete();
+        $chat->delete();
 
-        return response()->json(['message' => 'Sesi ditutup.']);
+        return response()->json(['message' => 'Sesi chat telah dihapus.']);
+    }
+
+    public function destroy(string $session): JsonResponse
+    {
+        return $this->close($session);
     }
 
     public function unreadCount(): JsonResponse
@@ -90,6 +104,10 @@ class ChatController extends Controller
 
     private function purgeClosed(): void
     {
+        $expired = ChatSession::where('last_activity_at', '<', now()->subMinutes(config('services.chatbot.session_minutes', 5)));
+        $expired->each(fn (ChatSession $session) => $session->messages()->delete());
+        $expired->delete();
+
         ChatSession::where('status', 'closed')
             ->where('closed_at', '<', now()->subMinutes(5))
             ->delete();

@@ -21,7 +21,7 @@ class ChatSession extends Model
         });
     }
 
-    protected $fillable = ['token', 'visitor_name', 'status', 'needs_attention', 'last_admin_seen_at', 'closed_at'];
+    protected $fillable = ['token', 'visitor_name', 'status', 'needs_attention', 'last_admin_seen_at', 'closed_at', 'last_activity_at'];
 
     protected function casts(): array
     {
@@ -29,7 +29,17 @@ class ChatSession extends Model
             'needs_attention' => 'boolean',
             'last_admin_seen_at' => 'datetime',
             'closed_at' => 'datetime',
+            'last_activity_at' => 'datetime',
         ];
+    }
+
+    public function isExpired(): bool
+    {
+        if (! $this->last_activity_at) {
+            return false;
+        }
+
+        return $this->last_activity_at->lt(now()->subMinutes(config('services.chatbot.session_minutes', 5)));
     }
 
     public function messages()

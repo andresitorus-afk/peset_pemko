@@ -53,6 +53,7 @@
             </div>
             <div class="flex gap-2">
               <UiButton v-if="current.status === 'open'" variant="secondary" size="sm" @click="closeSession">Tutup Sesi</UiButton>
+              <UiButton variant="danger" size="sm" @click="closeSession">Hapus</UiButton>
             </div>
           </div>
 
@@ -164,15 +165,15 @@ async function send() {
 async function closeSession() {
   if (!activeSession.value) return
   try {
-    await api.post(`/chat/sessions/${activeSession.value}/close`)
-    toast.show('Sesi ditutup', 'info')
+    await api.del(`/chat/sessions/${activeSession.value}`)
+    toast.show('Sesi dihapus', 'info')
     if (liveChannel) { liveChannel.stopListening('.message.sent'); liveChannel = null }
     sessions.value = sessions.value.filter(s => s.id !== activeSession.value)
     activeSession.value = null
     current.value = null
     messages.value = []
     refreshUnread()
-  } catch { toast.show('Gagal menutup sesi', 'error') }
+  } catch { toast.show('Gagal menghapus sesi', 'error') }
 }
 
 async function scrollBottom() {
